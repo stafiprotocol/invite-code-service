@@ -38,3 +38,9 @@ func GetInviteCodeByUser(db *db.WrapDb, user string) (info *InviteCode, err erro
 	err = db.Take(info, "user_address = ?", user).Error
 	return
 }
+
+func GetAvailableTaskInviteCode(db *db.WrapDb) (info *InviteCode, err error) {
+	info = &InviteCode{}
+	err = db.Take(info, "code_type = 0 && bind_time = 0").Error
+	return
+}

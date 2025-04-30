@@ -5,6 +5,7 @@ import (
 	"invite-code-service/pkg/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -15,8 +16,8 @@ type RspUserStatus struct {
 	CodeType   uint8  `json:"code_type"`
 }
 
-// @Summary get user info
-// @Description get user info (rsp.status "80000":Success "80001":ParamErr "80002":InternalErr)
+// @Summary get user status
+// @Description get user status
 // @Tags v1
 // @Accept json
 // @Produce json
@@ -26,7 +27,7 @@ type RspUserStatus struct {
 func (h *Handler) GetUserStatus(c *gin.Context) {
 	address := c.Query("address")
 	if len(address) == 0 {
-		utils.Ok(c, "success", RspUserStatus{})
+		utils.Ok(c, RspUserStatus{})
 		return
 	}
 
@@ -34,9 +35,10 @@ func (h *Handler) GetUserStatus(c *gin.Context) {
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
 			utils.Err(c, codeInternalErr, err.Error())
+			logrus.Errorf("bind err %s", err)
 			return
 		}
-		utils.Ok(c, "success", RspUserStatus{
+		utils.Ok(c, RspUserStatus{
 			Bound:      false,
 			InviteCode: "",
 			BondAt:     0,
@@ -45,7 +47,7 @@ func (h *Handler) GetUserStatus(c *gin.Context) {
 		return
 	}
 
-	utils.Ok(c, "success", RspUserStatus{
+	utils.Ok(c, RspUserStatus{
 		Bound:      true,
 		InviteCode: codeInfo.InviteCode,
 		BondAt:     codeInfo.BindTime,

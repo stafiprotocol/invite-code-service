@@ -17,10 +17,10 @@ type Rsp struct {
 	Data    any    `json:"data"`
 }
 
-func Ok(c *gin.Context, msg string, data any) {
+func Ok(c *gin.Context, data any) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "80000",
-		"message": msg,
+		"message": "success",
 		"data":    data,
 	})
 }

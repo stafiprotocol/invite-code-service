@@ -25,9 +25,7 @@ func NewTask(cfg *config.ConfigApi, dao *db.WrapDb) (*Task, error) {
 		db:         dao,
 	}
 
-	cache := map[string]uint64{
-		utils.GateMinStakeAmount: cfg.GateMinStakeAmount,
-	}
+	cache := map[string]uint64{}
 
 	handler := s.InitHandler(cache)
 

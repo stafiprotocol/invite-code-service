@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/userInfo": {
-            "get": {
-                "description": "get user info (rsp.status \"80000\":Success \"80001\":ParamErr \"80002\":InternalErr)",
+        "/v1/invite/bindDirect": {
+            "post": {
+                "description": "bind direct",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,7 +27,75 @@ const docTemplate = `{
                 "tags": [
                     "v1"
                 ],
-                "summary": "get user info",
+                "summary": "bind direct",
+                "parameters": [
+                    {
+                        "description": "bind direct req params",
+                        "name": "param",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.ReqBindDirect"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Rsp"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/invite/bindTask": {
+            "post": {
+                "description": "bind direct",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "summary": "bind direct",
+                "parameters": [
+                    {
+                        "description": "bind direct req params",
+                        "name": "param",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.ReqBindDirect"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Rsp"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/invite/userStatus": {
+            "get": {
+                "description": "get user status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "summary": "get user status",
                 "parameters": [
                     {
                         "type": "string",
@@ -49,7 +117,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.RspUserInfo"
+                                            "$ref": "#/definitions/api.RspUserStatus"
                                         }
                                     }
                                 }
@@ -61,9 +129,29 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.RspUserInfo": {
+        "api.ReqBindDirect": {
             "type": "object",
             "properties": {
+                "invite_code": {
+                    "type": "string"
+                },
+                "user_address": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.RspUserStatus": {
+            "type": "object",
+            "properties": {
+                "bond_at": {
+                    "type": "integer"
+                },
+                "bound": {
+                    "type": "boolean"
+                },
+                "code_type": {
+                    "type": "integer"
+                },
                 "invite_code": {
                     "type": "string"
                 }
@@ -91,7 +179,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "point API",
-	Description:      "point api document.",
+	Description:      "point api document. Error Codes: 80001 Invalid parameters; 80002 Internal server error; 80003 User already bound; 80004 Invite code already bound; 80005 Signature verification failed; 80006 Task verification failed; 80007 Invite code does not exist; 80008 Invite code type mismatch; 80009 Invite codes not enough",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
