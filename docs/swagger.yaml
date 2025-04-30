@@ -1,10 +1,15 @@
 basePath: /api
 definitions:
-  api.ReqBindDirect:
+  api.ReqBind:
     properties:
       invite_code:
         type: string
       user_address:
+        type: string
+    type: object
+  api.RspBind:
+    properties:
+      invite_code:
         type: string
     type: object
   api.RspUserStatus:
@@ -35,48 +40,31 @@ info:
   title: point API
   version: "1.0"
 paths:
-  /v1/invite/bindDirect:
+  /v1/invite/bind:
     post:
       consumes:
       - application/json
-      description: bind direct
+      description: bind
       parameters:
-      - description: bind direct req params
+      - description: bind
         in: body
         name: param
         required: true
         schema:
-          $ref: '#/definitions/api.ReqBindDirect'
+          $ref: '#/definitions/api.ReqBind'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/utils.Rsp'
-      summary: bind direct
-      tags:
-      - v1
-  /v1/invite/bindTask:
-    post:
-      consumes:
-      - application/json
-      description: bind direct
-      parameters:
-      - description: bind direct req params
-        in: body
-        name: param
-        required: true
-        schema:
-          $ref: '#/definitions/api.ReqBindDirect'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/utils.Rsp'
-      summary: bind direct
+            allOf:
+            - $ref: '#/definitions/utils.Rsp'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.RspBind'
+              type: object
+      summary: bind user address and invite code
       tags:
       - v1
   /v1/invite/userStatus:

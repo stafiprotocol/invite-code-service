@@ -23,8 +23,7 @@ func InitRouters(db *db.WrapDb, cache map[string]uint64) http.Handler {
 	handler := NewHandler(db, cache)
 	router.GET("/api/v1/invite/userStatus", handler.GetUserStatus)
 
-	router.POST("/api/v1/invite/bindDirect", handler.HandlePostBindDirect)
-	router.POST("/api/v1/invite/bindTask", handler.HandlePostBindTask)
+	router.POST("/api/v1/invite/bind", handler.HandlePostBind)
 
 	return router
 }

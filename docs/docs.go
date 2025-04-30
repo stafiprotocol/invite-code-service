@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/invite/bindDirect": {
+        "/v1/invite/bind": {
             "post": {
-                "description": "bind direct",
+                "description": "bind",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,15 +27,15 @@ const docTemplate = `{
                 "tags": [
                     "v1"
                 ],
-                "summary": "bind direct",
+                "summary": "bind user address and invite code",
                 "parameters": [
                     {
-                        "description": "bind direct req params",
+                        "description": "bind",
                         "name": "param",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.ReqBindDirect"
+                            "$ref": "#/definitions/api.ReqBind"
                         }
                     }
                 ],
@@ -43,41 +43,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/utils.Rsp"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/invite/bindTask": {
-            "post": {
-                "description": "bind direct",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "v1"
-                ],
-                "summary": "bind direct",
-                "parameters": [
-                    {
-                        "description": "bind direct req params",
-                        "name": "param",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.ReqBindDirect"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/utils.Rsp"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Rsp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/api.RspBind"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -129,13 +107,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.ReqBindDirect": {
+        "api.ReqBind": {
             "type": "object",
             "properties": {
                 "invite_code": {
                     "type": "string"
                 },
                 "user_address": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.RspBind": {
+            "type": "object",
+            "properties": {
+                "invite_code": {
                     "type": "string"
                 }
             }
