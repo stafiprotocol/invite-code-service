@@ -61,6 +61,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/invite/tasks": {
+            "get": {
+                "description": "get tasks",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "summary": "get tasks",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Rsp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/api.RspTasks"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/v1/invite/userStatus": {
             "get": {
                 "description": "get user status",
@@ -113,6 +148,9 @@ const docTemplate = `{
                 "invite_code": {
                     "type": "string"
                 },
+                "signature": {
+                    "type": "string"
+                },
                 "user_address": {
                     "type": "string"
                 }
@@ -126,19 +164,41 @@ const docTemplate = `{
                 }
             }
         },
+        "api.RspTasks": {
+            "type": "object",
+            "properties": {
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/invite-code-service_api.Task"
+                    }
+                }
+            }
+        },
         "api.RspUserStatus": {
             "type": "object",
             "properties": {
-                "bond_at": {
-                    "type": "integer"
-                },
                 "bound": {
                     "type": "boolean"
                 },
-                "code_type": {
-                    "type": "integer"
-                },
                 "invite_code": {
+                    "type": "string"
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/invite-code-service_api.Task"
+                    }
+                }
+            }
+        },
+        "invite-code-service_api.Task": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 }
             }

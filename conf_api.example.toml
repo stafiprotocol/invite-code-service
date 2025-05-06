@@ -1,9 +1,11 @@
-logFileDir = ""
-listenAddr = ":8088"
+LogFileDir = ""
+ListenAddr = ":8088"
+DirectInviteCodeCount = 20
+TaskInviteCodeCount = 20
 
 [db]
 host = "127.0.0.1" # mysql host ip
-name = "lst"       # the database this server used
+name = "code"       # the database this server used
 port = "3306"
 pwd = "123456"     # mysql password
 user = "root"      # mysql username

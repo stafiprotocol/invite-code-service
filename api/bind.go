@@ -5,6 +5,7 @@ import (
 	"invite-code-service/pkg/utils"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -13,6 +14,7 @@ import (
 type ReqBind struct {
 	UserAddress string `json:"user_address"`
 	InviteCode  string `json:"invite_code"`
+	Signature   string `json:"signature"`
 }
 
 type RspBind struct {
@@ -39,6 +41,8 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 		utils.Err(c, codeParamErr, "")
 		return
 	}
+	sigBts := common.FromHex(req.Signature)
+	userAddress := common.HexToAddress(req.UserAddress)
 
 	_, err = dao.GetInviteCodeByUser(h.db, req.UserAddress)
 	if err != nil {
@@ -54,9 +58,17 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 	}
 
 	var inviteCode *dao.InviteCode
-	// bind direct
 	if len(req.InviteCode) > 0 {
-		inviteCode, err := dao.GetInviteCode(h.db, req.InviteCode)
+		// check signature
+
+		if !utils.VerifySigsEthPersonal(sigBts, req.InviteCode, userAddress) {
+			utils.Err(c, codeUserSigVerifyErr, err.Error())
+			logrus.Errorf("VerifySigsEthPersonal failed, user: %s", req.UserAddress)
+			return
+		}
+
+		// bind direct
+		inviteCode, err = dao.GetInviteCode(h.db, req.InviteCode)
 		if err != nil {
 			if err != gorm.ErrRecordNotFound {
 				utils.Err(c, codeInternalErr, err.Error())
@@ -79,6 +91,10 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 			// pass
 		}
 	} else {
+		// check signature
+
+		// check task
+
 		// bind task
 		inviteCode, err = dao.GetAvailableTaskInviteCode(h.db)
 		if err != nil {
@@ -95,7 +111,7 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 		// pass
 	}
 
-	inviteCode.UserAddress = req.UserAddress
+	inviteCode.UserAddress = &req.UserAddress
 	inviteCode.BindTime = uint64(time.Now().Unix())
 
 	err = dao.UpOrInInviteCode(h.db, inviteCode)

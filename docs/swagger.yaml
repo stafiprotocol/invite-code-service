@@ -4,6 +4,8 @@ definitions:
     properties:
       invite_code:
         type: string
+      signature:
+        type: string
       user_address:
         type: string
     type: object
@@ -12,15 +14,29 @@ definitions:
       invite_code:
         type: string
     type: object
+  api.RspTasks:
+    properties:
+      tasks:
+        items:
+          $ref: '#/definitions/invite-code-service_api.Task'
+        type: array
+    type: object
   api.RspUserStatus:
     properties:
-      bond_at:
-        type: integer
       bound:
         type: boolean
-      code_type:
-        type: integer
       invite_code:
+        type: string
+      tasks:
+        items:
+          $ref: '#/definitions/invite-code-service_api.Task'
+        type: array
+    type: object
+  invite-code-service_api.Task:
+    properties:
+      description:
+        type: string
+      id:
         type: string
     type: object
   utils.Rsp:
@@ -65,6 +81,26 @@ paths:
                   $ref: '#/definitions/api.RspBind'
               type: object
       summary: bind user address and invite code
+      tags:
+      - v1
+  /v1/invite/tasks:
+    get:
+      consumes:
+      - application/json
+      description: get tasks
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Rsp'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.RspTasks'
+              type: object
+      summary: get tasks
       tags:
       - v1
   /v1/invite/userStatus:
