@@ -3,6 +3,7 @@ package api
 import (
 	"invite-code-service/dao"
 	"invite-code-service/pkg/utils"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -29,24 +30,42 @@ func (h *Handler) GetUserStatus(c *gin.Context) {
 		utils.Ok(c, RspUserStatus{})
 		return
 	}
+	address = strings.ToLower(address)
 
-	codeInfo, err := dao.GetInviteCodeByUser(h.db, address)
+	codeInfo, err := dao.GetInviteCodeByUserAddress(h.db, address)
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
 			utils.Err(c, codeInternalErr, err.Error())
 			logrus.Errorf("bind err %s", err)
 			return
 		}
+
+		userTasks, err := h.getUserTasks(address)
+		if err != nil {
+			utils.Err(c, codeInternalErr, err.Error())
+			logrus.Errorf("getUserTasks err %s", err)
+			return
+		}
+
 		utils.Ok(c, RspUserStatus{
 			Bound:      false,
 			InviteCode: "",
+			Tasks:      userTasks,
 		})
+		return
+	}
+
+	tasks, err := h.getTasks()
+	if err != nil {
+		utils.Err(c, codeInternalErr, err.Error())
+		logrus.Errorf("getTasks err %s", err)
 		return
 	}
 
 	utils.Ok(c, RspUserStatus{
 		Bound:      true,
 		InviteCode: codeInfo.InviteCode,
+		Tasks:      tasks,
 	})
 
 }

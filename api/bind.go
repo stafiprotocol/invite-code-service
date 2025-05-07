@@ -3,6 +3,7 @@ package api
 import (
 	"invite-code-service/dao"
 	"invite-code-service/pkg/utils"
+	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -41,10 +42,12 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 		utils.Err(c, codeParamErr, "")
 		return
 	}
+	req.UserAddress = strings.ToLower(req.UserAddress)
+
 	sigBts := common.FromHex(req.Signature)
 	userAddress := common.HexToAddress(req.UserAddress)
 
-	_, err = dao.GetInviteCodeByUser(h.db, req.UserAddress)
+	_, err = dao.GetInviteCodeByUserAddress(h.db, req.UserAddress)
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
 			utils.Err(c, codeInternalErr, err.Error())
@@ -60,7 +63,6 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 	var inviteCode *dao.InviteCode
 	if len(req.InviteCode) > 0 {
 		// check signature
-
 		if !utils.VerifySigsEthPersonal(sigBts, req.InviteCode, userAddress) {
 			utils.Err(c, codeUserSigVerifyErr, err.Error())
 			logrus.Errorf("VerifySigsEthPersonal failed, user: %s", req.UserAddress)
@@ -94,6 +96,23 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 		// check signature
 
 		// check task
+		tasks, err := h.getTasks()
+		if err != nil {
+			utils.Err(c, codeInternalErr, err.Error())
+			logrus.Errorf("getTasks err %s", err)
+			return
+		}
+		userTasks, err := h.getUserTasks(req.UserAddress)
+		if err != nil {
+			utils.Err(c, codeInternalErr, err.Error())
+			logrus.Errorf("getUserTasks err %s", err)
+			return
+		}
+		if len(userTasks) == 0 || len(tasks) == 0 || len(userTasks) < len(tasks) {
+			utils.Err(c, codeUserTaskVerifyErr, "")
+			logrus.Errorf("task not enough, userTasks len: %d, tasks len: %d", len(userTasks), len(tasks))
+			return
+		}
 
 		// bind task
 		inviteCode, err = dao.GetAvailableTaskInviteCode(h.db)
@@ -108,6 +127,15 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 			logrus.Errorf("GetAvailableTaskInviteCode err %s", err)
 			return
 		}
+
+		userId, err := h.getUserId(req.UserAddress)
+		if err != nil {
+			utils.Err(c, codeInternalErr, err.Error())
+			logrus.Errorf("getUserId err %s", err)
+			return
+		}
+		inviteCode.UserId = userId
+
 		// pass
 	}
 
@@ -121,7 +149,10 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 		return
 	}
 
-	logrus.WithField("inviteCode", inviteCode).Info("bind  success")
+	logrus.WithFields(logrus.Fields{
+		"inviteCode":  inviteCode,
+		"userAddress": req.UserAddress,
+	}).Info("bind  success")
 
 	utils.Ok(c, RspBind{
 		InviteCode: inviteCode.InviteCode,

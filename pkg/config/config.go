@@ -12,6 +12,8 @@ type ConfigApi struct {
 	ListenAddr            string
 	DirectInviteCodeCount uint64
 	TaskInviteCodeCount   uint64
+	ZealyApiKey           string
+	ZealySubdomain        string
 
 	Db Db
 }

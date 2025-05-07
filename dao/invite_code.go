@@ -14,6 +14,7 @@ type InviteCode struct {
 
 	InviteCode  string  `gorm:"type:varchar(10);not null;default:'';column:invite_code;uniqueIndex"`
 	UserAddress *string `gorm:"type:varchar(80);column:user_address;uniqueIndex"`
+	UserId      *string `gorm:"type:varchar(80);column:user_id;uniqueIndex"`
 
 	CodeType uint8  `gorm:"type:tinyint(1);unsigned;not null;default:0;column:code_type"`
 	BindTime uint64 `gorm:"type:int(11);unsigned;not null;default:0;column:bind_time"`
@@ -38,9 +39,15 @@ func GetInviteCodeCount(db *db.WrapDb, codeType uint8) (count int64, err error) 
 	return
 }
 
-func GetInviteCodeByUser(db *db.WrapDb, user string) (info *InviteCode, err error) {
+func GetInviteCodeByUserAddress(db *db.WrapDb, user string) (info *InviteCode, err error) {
 	info = &InviteCode{}
 	err = db.Take(info, "user_address = ?", user).Error
+	return
+}
+
+func GetInviteCodeByUserId(db *db.WrapDb, id string) (info *InviteCode, err error) {
+	info = &InviteCode{}
+	err = db.Take(info, "user_id = ?", id).Error
 	return
 }
 

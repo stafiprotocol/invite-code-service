@@ -14,8 +14,7 @@ import (
 )
 
 type Task struct {
-	taskTicker int64
-	cfg        *config.ConfigApi
+	cfg *config.ConfigApi
 
 	httpServer *http.Server
 	db         *db.WrapDb
@@ -23,14 +22,11 @@ type Task struct {
 
 func NewTask(cfg *config.ConfigApi, dao *db.WrapDb) (*Task, error) {
 	s := &Task{
-		taskTicker: 10,
-		cfg:        cfg,
-		db:         dao,
+		cfg: cfg,
+		db:  dao,
 	}
 
-	cache := map[string]uint64{}
-
-	handler := s.InitHandler(cache)
+	handler := s.InitHandler()
 
 	s.httpServer = &http.Server{
 		Addr:         s.cfg.ListenAddr,
@@ -42,8 +38,8 @@ func NewTask(cfg *config.ConfigApi, dao *db.WrapDb) (*Task, error) {
 	return s, nil
 }
 
-func (svr *Task) InitHandler(cache map[string]uint64) http.Handler {
-	return api.InitRouters(svr.db, cache)
+func (svr *Task) InitHandler() http.Handler {
+	return api.InitRouters(svr.db, svr.cfg)
 }
 
 func (svr *Task) ApiServer() {

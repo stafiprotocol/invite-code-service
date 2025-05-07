@@ -1,6 +1,7 @@
 package api
 
 import (
+	"invite-code-service/pkg/config"
 	"invite-code-service/pkg/db"
 	"net/http"
 
@@ -11,7 +12,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func InitRouters(db *db.WrapDb, cache map[string]uint64) http.Handler {
+func InitRouters(db *db.WrapDb, cfg *config.ConfigApi) http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.MaxMultipartMemory = 8 << 20 // 8 MiB
@@ -20,8 +21,8 @@ func InitRouters(db *db.WrapDb, cache map[string]uint64) http.Handler {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	handler := NewHandler(db, cache)
-	router.POST("/api/v1/invite/tasks", handler.GetTasks)
+	handler := NewHandler(db, cfg)
+	router.GET("/api/v1/invite/tasks", handler.GetTasks)
 	router.GET("/api/v1/invite/userStatus", handler.GetUserStatus)
 
 	router.POST("/api/v1/invite/bind", handler.HandlePostBind)
