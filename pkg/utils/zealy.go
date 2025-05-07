@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -164,6 +165,8 @@ type Invite struct {
 	XP       int    `json:"xp"`
 }
 
+var ErrAddressNotFound = errors.New("ErrAddressNotFound")
+
 func GetCommunityUser(apiKey, subdomain, ethAddress string) (*UserResponse, error) {
 	url := fmt.Sprintf("https://api-v2.zealy.io/public/communities/%s/users", subdomain)
 	if ethAddress != "" {
@@ -186,6 +189,10 @@ func GetCommunityUser(apiKey, subdomain, ethAddress string) (*UserResponse, erro
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, ErrAddressNotFound
+		}
+
 		return nil, fmt.Errorf("status code: %d", resp.StatusCode)
 	}
 

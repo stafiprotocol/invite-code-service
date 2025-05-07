@@ -42,9 +42,13 @@ func (h *Handler) GetUserStatus(c *gin.Context) {
 
 		userTasks, err := h.getUserTasks(address)
 		if err != nil {
-			utils.Err(c, codeInternalErr, err.Error())
-			logrus.Errorf("getUserTasks err %s", err)
-			return
+			if err != utils.ErrAddressNotFound {
+				utils.Err(c, codeInternalErr, err.Error())
+				logrus.Errorf("getUserTasks err %s", err)
+				return
+			} else {
+				userTasks = []Task{}
+			}
 		}
 
 		utils.Ok(c, RspUserStatus{
@@ -55,17 +59,17 @@ func (h *Handler) GetUserStatus(c *gin.Context) {
 		return
 	}
 
-	tasks, err := h.getTasks()
-	if err != nil {
-		utils.Err(c, codeInternalErr, err.Error())
-		logrus.Errorf("getTasks err %s", err)
-		return
-	}
-
-	utils.Ok(c, RspUserStatus{
+	rsp := RspUserStatus{
 		Bound:      true,
 		InviteCode: codeInfo.InviteCode,
-		Tasks:      tasks,
-	})
+		Tasks:      []Task{},
+	}
+	if codeInfo.CodeType == dao.TaskInviteCode {
+		userTasks, err := h.getUserTasks(address)
+		if err == nil {
+			rsp.Tasks = userTasks
+		}
+	}
 
+	utils.Ok(c, rsp)
 }
