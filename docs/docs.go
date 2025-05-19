@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/v1/invite/bind": {
             "post": {
-                "description": "bind",
+                "description": "The exact message format to sign is here:\nhttps://github.com/stafiprotocol/invite-code-service/blob/main/pkg/utils/signature.go",
                 "consumes": [
                     "application/json"
                 ],
@@ -43,6 +43,40 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
+                            "$ref": "#/definitions/utils.Rsp"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/invite/genInviteCode": {
+            "post": {
+                "description": "The exact message format to sign is here:\nhttps://github.com/stafiprotocol/invite-code-service/blob/main/pkg/utils/signature.go",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "summary": "gen invite code",
+                "parameters": [
+                    {
+                        "description": "gen",
+                        "name": "param",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.ReqGen"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
                             "allOf": [
                                 {
                                     "$ref": "#/definitions/utils.Rsp"
@@ -51,7 +85,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.RspBind"
+                                            "$ref": "#/definitions/api.RspGen"
                                         }
                                     }
                                 }
@@ -139,24 +173,79 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/v1/invite/waterInviteCode": {
+            "get": {
+                "description": "get water invite code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "summary": "get water invite code",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Rsp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/api.RspWaterInviteCode"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
         "api.ReqBind": {
             "type": "object",
             "properties": {
+                "discord_id": {
+                    "type": "string"
+                },
                 "invite_code": {
                     "type": "string"
                 },
                 "signature": {
                     "type": "string"
                 },
+                "timestamp": {
+                    "type": "integer"
+                },
                 "user_address": {
                     "type": "string"
                 }
             }
         },
-        "api.RspBind": {
+        "api.ReqGen": {
+            "type": "object",
+            "properties": {
+                "signature": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                },
+                "user_address": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.RspGen": {
             "type": "object",
             "properties": {
                 "invite_code": {
@@ -178,9 +267,6 @@ const docTemplate = `{
         "api.RspUserStatus": {
             "type": "object",
             "properties": {
-                "bound": {
-                    "type": "boolean"
-                },
                 "invite_code": {
                     "type": "string"
                 },
@@ -188,6 +274,17 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/invite-code-service_api.Task"
+                    }
+                }
+            }
+        },
+        "api.RspWaterInviteCode": {
+            "type": "object",
+            "properties": {
+                "invite_codes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }
@@ -225,7 +322,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "point API",
-	Description:      "point api document. Error Codes: 80001 Invalid parameters; 80002 Internal server error; 80003 User already bound; 80004 Invite code already bound; 80005 Signature verification failed; 80006 Task verification failed; 80007 Invite code does not exist; 80008 Invite code type mismatch; 80009 Invite codes not enough",
+	Description:      "point api document.\nError Codes:\n80001 Invalid parameters\n80002 Internal server error\n80003 User already bound\n80004 Invite code already bound\n80005 Signature verification failed\n80006 Task verification failed\n80007 Invite code does not exist\n80008 Invite code type mismatch\n80009 Invite codes not enough",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

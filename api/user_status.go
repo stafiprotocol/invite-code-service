@@ -11,7 +11,6 @@ import (
 )
 
 type RspUserStatus struct {
-	Bound      bool   `json:"bound"`
 	InviteCode string `json:"invite_code"`
 	Tasks      []Task `json:"tasks"`
 }
@@ -52,7 +51,6 @@ func (h *Handler) GetUserStatus(c *gin.Context) {
 		}
 
 		utils.Ok(c, RspUserStatus{
-			Bound:      false,
 			InviteCode: "",
 			Tasks:      userTasks,
 		})
@@ -60,7 +58,6 @@ func (h *Handler) GetUserStatus(c *gin.Context) {
 	}
 
 	rsp := RspUserStatus{
-		Bound:      true,
 		InviteCode: codeInfo.InviteCode,
 		Tasks:      []Task{},
 	}

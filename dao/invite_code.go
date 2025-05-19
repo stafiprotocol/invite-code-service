@@ -7,6 +7,7 @@ import (
 const (
 	TaskInviteCode   = uint8(0)
 	DirectInviteCode = uint8(1)
+	WaterInviteCode  = uint8(2)
 )
 
 type InviteCode struct {
@@ -14,6 +15,7 @@ type InviteCode struct {
 
 	InviteCode  string  `gorm:"type:varchar(10);not null;default:'';column:invite_code;uniqueIndex"`
 	UserAddress *string `gorm:"type:varchar(80);column:user_address;uniqueIndex"`
+	DiscordId   *string `gorm:"type:varchar(80);column:discord_id;uniqueIndex"`
 	UserId      *string `gorm:"type:varchar(80);column:user_id;uniqueIndex"`
 
 	CodeType uint8  `gorm:"type:tinyint(1);unsigned;not null;default:0;column:code_type"`

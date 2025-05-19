@@ -12,32 +12,34 @@ import (
 	"gorm.io/gorm"
 )
 
-type ReqBind struct {
+type ReqGen struct {
 	UserAddress string `json:"user_address"`
-	DiscordId   string `json:"discord_id"`
-	InviteCode  string `json:"invite_code"`
 	Signature   string `json:"signature"`
 	Timestamp   uint64 `json:"timestamp"`
 }
 
-// @Summary bind user address and invite code
+type RspGen struct {
+	InviteCode string `json:"invite_code"`
+}
+
+// @Summary gen invite code
 // @Description The exact message format to sign is here:
 // @Description https://github.com/stafiprotocol/invite-code-service/blob/main/pkg/utils/signature.go
 // @Tags v1
 // @Accept json
 // @Produce json
-// @Param param body ReqBind true "bind"
-// @Success 200 {object} utils.Rsp{}
-// @Router /v1/invite/bind [post]
-func (h *Handler) HandlePostBind(c *gin.Context) {
-	req := ReqBind{}
+// @Param param body ReqGen true "gen"
+// @Success 200 {object} utils.Rsp{data=RspGen}
+// @Router /v1/invite/genInviteCode [post]
+func (h *Handler) HandlePostGenInviteCode(c *gin.Context) {
+	req := ReqGen{}
 	err := c.Bind(&req)
 	if err != nil {
 		utils.Err(c, codeParamErr, err.Error())
 		logrus.Errorf("bind err %s", err)
 		return
 	}
-	if len(req.UserAddress) == 0 || len(req.DiscordId) == 0 || len(req.InviteCode) == 0 || len(req.Signature) == 0 {
+	if len(req.UserAddress) == 0 {
 		utils.Err(c, codeParamErr, "")
 		return
 	}
@@ -66,37 +68,61 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 		return
 	}
 
-	signMessage := utils.BuildBindMessage(req.InviteCode, req.DiscordId, req.Timestamp)
+	signMessage := utils.BuildGenMessage(req.Timestamp)
 	if !utils.VerifySigsEthPersonal(sigBts, signMessage, userAddress) {
 		utils.Err(c, codeUserSigVerifyErr, "verify sigs failed")
 		logrus.Errorf("VerifySigsEthPersonal failed, user: %s", req.UserAddress)
 		return
 	}
 
-	// bind direct or water invite code
-	inviteCode, err := dao.GetInviteCode(h.db, req.InviteCode)
+	// check task
+	tasks, err := h.getTasks()
+	if err != nil {
+		utils.Err(c, codeInternalErr, err.Error())
+		logrus.Errorf("getTasks err %s", err)
+		return
+	}
+	userTasks, err := h.getUserTasks(req.UserAddress)
+	if err != nil {
+		utils.Err(c, codeInternalErr, err.Error())
+		logrus.Errorf("getUserTasks err %s", err)
+		return
+	}
+	if len(userTasks) == 0 || len(tasks) == 0 || len(userTasks) < len(tasks) {
+		utils.Err(c, codeUserTaskVerifyErr, "")
+		logrus.Errorf("task not enough, userTasks len: %d, tasks len: %d", len(userTasks), len(tasks))
+		return
+	}
+
+	// bind task
+	inviteCode, err := dao.GetAvailableTaskInviteCode(h.db)
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
 			utils.Err(c, codeInternalErr, err.Error())
-			logrus.Errorf("GetInviteCode err %s", err)
+			logrus.Errorf("GetAvailableTaskInviteCode err %s", err)
 			return
 		}
 
-		utils.Err(c, codeInviteCodeNotExistErr, err.Error())
+		utils.Err(c, codeInviteCodeNotEnoughErr, err.Error())
+		logrus.Errorf("GetAvailableTaskInviteCode err %s", err)
 		return
-	} else {
-		if inviteCode.BindTime != 0 {
-			utils.Err(c, codeInviteCodeAlreadyBoundErr, "")
-			return
-		}
-
-		if inviteCode.CodeType != dao.DirectInviteCode && inviteCode.CodeType != dao.WaterInviteCode {
-			utils.Err(c, codeInviteCodeTypeNotMatchErr, "")
-			return
-		}
-		// pass
 	}
 
+	userInfo, err := h.getUserInfo(req.UserAddress)
+	if err != nil {
+		utils.Err(c, codeInternalErr, err.Error())
+		logrus.Errorf("getUserInfo err %s", err)
+		return
+	}
+
+	if len(userInfo.DiscordID) == 0 {
+		utils.Err(c, codeInternalErr, "")
+		logrus.Errorf("user discord empty err, user: %s", req.UserAddress)
+		return
+	}
+
+	inviteCode.UserId = &userInfo.ID
+	inviteCode.DiscordId = &userInfo.DiscordID
 	inviteCode.UserAddress = &req.UserAddress
 	inviteCode.BindTime = uint64(time.Now().Unix())
 
@@ -112,5 +138,7 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 		"userAddress": req.UserAddress,
 	}).Info("bind  success")
 
-	utils.Ok(c, nil)
+	utils.Ok(c, RspGen{
+		InviteCode: inviteCode.InviteCode,
+	})
 }

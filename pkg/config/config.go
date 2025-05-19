@@ -10,8 +10,9 @@ import (
 type ConfigApi struct {
 	LogFileDir            string
 	ListenAddr            string
-	DirectInviteCodeCount uint64
 	TaskInviteCodeCount   uint64
+	DirectInviteCodeCount uint64
+	WaterInviteCodeCount  uint64
 	ZealyApiKey           string
 	ZealySubdomain        string
 

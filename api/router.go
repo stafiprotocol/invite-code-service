@@ -24,8 +24,10 @@ func InitRouters(db *db.WrapDb, cfg *config.ConfigApi) http.Handler {
 	handler := NewHandler(db, cfg)
 	router.GET("/api/v1/invite/tasks", handler.GetTasks)
 	router.GET("/api/v1/invite/userStatus", handler.GetUserStatus)
+	router.GET("/api/v1/invite/waterInviteCode", handler.GetWaterInviteCode)
 
 	router.POST("/api/v1/invite/bind", handler.HandlePostBind)
+	router.POST("/api/v1/invite/genInviteCode", handler.HandlePostGenInviteCode)
 
 	return router
 }

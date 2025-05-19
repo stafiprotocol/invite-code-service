@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"invite-code-service/api"
 	"invite-code-service/dao"
 	"invite-code-service/pkg/config"
@@ -9,18 +10,26 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
+const maxGenCount = 100000
+
 type Task struct {
-	cfg *config.ConfigApi
+	cfg  *config.ConfigApi
+	cron *cron.Cron
 
 	httpServer *http.Server
 	db         *db.WrapDb
 }
 
 func NewTask(cfg *config.ConfigApi, dao *db.WrapDb) (*Task, error) {
+	if cfg.TaskInviteCodeCount > maxGenCount || cfg.DirectInviteCodeCount > maxGenCount || cfg.WaterInviteCodeCount > maxGenCount {
+		return nil, fmt.Errorf("over max gen count: %d", maxGenCount)
+	}
+
 	s := &Task{
 		cfg: cfg,
 		db:  dao,
@@ -31,8 +40,8 @@ func NewTask(cfg *config.ConfigApi, dao *db.WrapDb) (*Task, error) {
 	s.httpServer = &http.Server{
 		Addr:         s.cfg.ListenAddr,
 		Handler:      handler,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  60 * time.Second,
+		WriteTimeout: 60 * time.Second,
 	}
 
 	return s, nil
@@ -54,23 +63,17 @@ func (svr *Task) ApiServer() {
 }
 
 func (svr *Task) Start() error {
-	directInviteCodeCount, err := dao.GetInviteCodeCount(svr.db, dao.DirectInviteCode)
-	if err != nil {
-		return err
-	}
 	taskInviteCodeCount, err := dao.GetInviteCodeCount(svr.db, dao.TaskInviteCode)
 	if err != nil {
 		return err
 	}
-
-	if directInviteCodeCount < int64(svr.cfg.DirectInviteCodeCount) {
-		genCount := int64(svr.cfg.DirectInviteCodeCount) - directInviteCodeCount
-		logrus.Infof("need generate %d direct invite code", genCount)
-		err := svr.genInviteCode(genCount, dao.DirectInviteCode)
-		if err != nil {
-			return err
-		}
-		logrus.Infof("generate success")
+	directInviteCodeCount, err := dao.GetInviteCodeCount(svr.db, dao.DirectInviteCode)
+	if err != nil {
+		return err
+	}
+	waterInviteCodeCount, err := dao.GetInviteCodeCount(svr.db, dao.WaterInviteCode)
+	if err != nil {
+		return err
 	}
 
 	if taskInviteCodeCount < int64(svr.cfg.TaskInviteCodeCount) {
@@ -83,6 +86,43 @@ func (svr *Task) Start() error {
 		}
 		logrus.Infof("generate success")
 	}
+
+	if directInviteCodeCount < int64(svr.cfg.DirectInviteCodeCount) {
+		genCount := int64(svr.cfg.DirectInviteCodeCount) - directInviteCodeCount
+		logrus.Infof("need generate %d direct invite code", genCount)
+		err := svr.genInviteCode(genCount, dao.DirectInviteCode)
+		if err != nil {
+			return err
+		}
+		logrus.Infof("generate success")
+	}
+
+	if waterInviteCodeCount < int64(svr.cfg.WaterInviteCodeCount) {
+		genCount := int64(svr.cfg.WaterInviteCodeCount) - waterInviteCodeCount
+
+		logrus.Infof("need generate %d water invite code", genCount)
+		err := svr.genInviteCode(genCount, dao.WaterInviteCode)
+		if err != nil {
+			return err
+		}
+		logrus.Infof("generate success")
+	}
+
+	err = dao.TryRotateInviteCodes(svr.db)
+	if err != nil {
+		return fmt.Errorf("TryRotateInviteCodes failed: %s", err.Error())
+	}
+
+	svr.cron = cron.New()
+	_, _ = svr.cron.AddFunc("*/2 * * * *", func() {
+		logrus.Debug("cron start")
+		err := dao.TryRotateInviteCodes(svr.db)
+		if err != nil {
+			logrus.Warnf("Rotation check failed: %v", err)
+		}
+		logrus.Debug("cron stop")
+	})
+	svr.cron.Start()
 
 	utils.SafeGoWithRestart(svr.ApiServer)
 	return nil
@@ -126,4 +166,6 @@ func (svr *Task) Stop() {
 			logrus.Errorf("Problem shutdown Gin server :%s", err.Error())
 		}
 	}
+
+	svr.cron.Stop()
 }

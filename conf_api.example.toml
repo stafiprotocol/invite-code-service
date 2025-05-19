@@ -1,7 +1,10 @@
 LogFileDir = ""
 ListenAddr = ":8088"
-DirectInviteCodeCount = 20
+
 TaskInviteCodeCount = 20
+DirectInviteCodeCount = 20
+WaterInviteCodeCount = 20
+
 ZealyApiKey = ""
 ZealySubdomain = ""
 

@@ -2,14 +2,27 @@ basePath: /api
 definitions:
   api.ReqBind:
     properties:
+      discord_id:
+        type: string
       invite_code:
         type: string
       signature:
         type: string
+      timestamp:
+        type: integer
       user_address:
         type: string
     type: object
-  api.RspBind:
+  api.ReqGen:
+    properties:
+      signature:
+        type: string
+      timestamp:
+        type: integer
+      user_address:
+        type: string
+    type: object
+  api.RspGen:
     properties:
       invite_code:
         type: string
@@ -23,13 +36,18 @@ definitions:
     type: object
   api.RspUserStatus:
     properties:
-      bound:
-        type: boolean
       invite_code:
         type: string
       tasks:
         items:
           $ref: '#/definitions/invite-code-service_api.Task'
+        type: array
+    type: object
+  api.RspWaterInviteCode:
+    properties:
+      invite_codes:
+        items:
+          type: string
         type: array
     type: object
   invite-code-service_api.Task:
@@ -49,10 +67,18 @@ definitions:
     type: object
 info:
   contact: {}
-  description: 'point api document. Error Codes: 80001 Invalid parameters; 80002 Internal
-    server error; 80003 User already bound; 80004 Invite code already bound; 80005
-    Signature verification failed; 80006 Task verification failed; 80007 Invite code
-    does not exist; 80008 Invite code type mismatch; 80009 Invite codes not enough'
+  description: |-
+    point api document.
+    Error Codes:
+    80001 Invalid parameters
+    80002 Internal server error
+    80003 User already bound
+    80004 Invite code already bound
+    80005 Signature verification failed
+    80006 Task verification failed
+    80007 Invite code does not exist
+    80008 Invite code type mismatch
+    80009 Invite codes not enough
   title: point API
   version: "1.0"
 paths:
@@ -60,7 +86,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: bind
+      description: |-
+        The exact message format to sign is here:
+        https://github.com/stafiprotocol/invite-code-service/blob/main/pkg/utils/signature.go
       parameters:
       - description: bind
         in: body
@@ -74,13 +102,37 @@ paths:
         "200":
           description: OK
           schema:
+            $ref: '#/definitions/utils.Rsp'
+      summary: bind user address and invite code
+      tags:
+      - v1
+  /v1/invite/genInviteCode:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        The exact message format to sign is here:
+        https://github.com/stafiprotocol/invite-code-service/blob/main/pkg/utils/signature.go
+      parameters:
+      - description: gen
+        in: body
+        name: param
+        required: true
+        schema:
+          $ref: '#/definitions/api.ReqGen'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
             allOf:
             - $ref: '#/definitions/utils.Rsp'
             - properties:
                 data:
-                  $ref: '#/definitions/api.RspBind'
+                  $ref: '#/definitions/api.RspGen'
               type: object
-      summary: bind user address and invite code
+      summary: gen invite code
       tags:
       - v1
   /v1/invite/tasks:
@@ -127,6 +179,26 @@ paths:
                   $ref: '#/definitions/api.RspUserStatus'
               type: object
       summary: get user status
+      tags:
+      - v1
+  /v1/invite/waterInviteCode:
+    get:
+      consumes:
+      - application/json
+      description: get water invite code
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Rsp'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.RspWaterInviteCode'
+              type: object
+      summary: get water invite code
       tags:
       - v1
 swagger: "2.0"

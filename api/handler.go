@@ -24,12 +24,12 @@ const (
 
 const (
 	cacheKeyTask     = "cacheKeyTask"
-	cacheKeyUserId   = "cacheKeyUserId_%s"
+	cacheKeyUserInfo = "cacheKeyUserInfo_%s"
 	cacheKeyUserTask = "cacheKeyUserTask_%s"
 )
 
-func userIdKey(addr string) string {
-	return fmt.Sprintf(cacheKeyUserId, addr)
+func userInfoKey(addr string) string {
+	return fmt.Sprintf(cacheKeyUserInfo, addr)
 }
 func userTaskKey(addr string) string {
 	return fmt.Sprintf(cacheKeyUserTask, addr)
@@ -77,36 +77,42 @@ func (h *Handler) getTasks() ([]Task, error) {
 	return tasks, nil
 }
 
-func (h *Handler) getUserId(address string) (*string, error) {
-	cachedUserId, found := h.cache.Get(userIdKey(address))
+func (h *Handler) getUserInfo(address string) (*utils.UserResponse, error) {
+	cachedUserInfo, found := h.cache.Get(userInfoKey(address))
 	if !found {
 		user, err := utils.GetCommunityUser(h.cfg.ZealyApiKey, h.cfg.ZealySubdomain, address)
 		if err != nil {
 			return nil, err
 		}
 
-		cachedUserId = user.ID
+		if len(user.DiscordID) > 0 {
+			cachedUserInfo = user
+			h.cache.Set(userInfoKey(address), user, cache.NoExpiration)
+		}
 
-		h.cache.Set(userIdKey(address), user.ID, cache.NoExpiration)
 	}
 
-	userId, ok := cachedUserId.(string)
+	user, ok := cachedUserInfo.(*utils.UserResponse)
 	if !ok {
-		return nil, fmt.Errorf("cast cachedUserId failed, %+v", cachedUserId)
+		return nil, fmt.Errorf("cast cachedUserId failed, %+v", cachedUserInfo)
 	}
 
-	return &userId, nil
+	if len(user.ID) == 0 {
+		return nil, fmt.Errorf("user id empty")
+	}
+
+	return user, nil
 }
 
 func (h *Handler) getUserTasks(address string) ([]Task, error) {
 	cachedUserTask, found := h.cache.Get(userTaskKey(address))
 	if !found {
-		userId, err := h.getUserId(address)
+		userInfo, err := h.getUserInfo(address)
 		if err != nil {
 			return nil, err
 		}
 
-		reviews, err := utils.GetCommunityReviews(h.cfg.ZealyApiKey, h.cfg.ZealySubdomain, *userId)
+		reviews, err := utils.GetCommunityReviews(h.cfg.ZealyApiKey, h.cfg.ZealySubdomain, userInfo.ID)
 		if err != nil {
 			return nil, err
 		}
