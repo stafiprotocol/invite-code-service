@@ -95,9 +95,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/invite/tasks": {
+        "/v1/invite/summary": {
             "get": {
-                "description": "get tasks",
+                "description": "get codes info and zealy task",
                 "consumes": [
                     "application/json"
                 ],
@@ -107,7 +107,7 @@ const docTemplate = `{
                 "tags": [
                     "v1"
                 ],
-                "summary": "get tasks",
+                "summary": "get codes info and zealy task",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -120,7 +120,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/api.RspTasks"
+                                            "$ref": "#/definitions/api.RspSummary"
                                         }
                                     }
                                 }
@@ -253,14 +253,20 @@ const docTemplate = `{
                 }
             }
         },
-        "api.RspTasks": {
+        "api.RspSummary": {
             "type": "object",
             "properties": {
+                "remaining_codes": {
+                    "type": "integer"
+                },
                 "tasks": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/invite-code-service_api.Task"
                     }
+                },
+                "total_codes": {
+                    "type": "integer"
                 }
             }
         },

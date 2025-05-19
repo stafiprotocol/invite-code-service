@@ -58,3 +58,26 @@ func GetAvailableTaskInviteCode(db *db.WrapDb) (info *InviteCode, err error) {
 	err = db.Take(info, "code_type = 0 && bind_time = 0").Error
 	return
 }
+
+type InviteCodeStats struct {
+	TotalCodes  int64 `json:"totalCodes"`
+	RemainCodes int64 `json:"remainCodes"`
+}
+
+func GetInviteCodeStats(db *db.WrapDb) (*InviteCodeStats, error) {
+	var total int64
+	var unused int64
+
+	if err := db.Model(&InviteCode{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	if err := db.Model(&InviteCode{}).Where("user_address IS NULL").Count(&unused).Error; err != nil {
+		return nil, err
+	}
+
+	return &InviteCodeStats{
+		TotalCodes:  total,
+		RemainCodes: unused,
+	}, nil
+}

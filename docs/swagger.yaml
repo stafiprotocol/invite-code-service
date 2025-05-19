@@ -27,12 +27,16 @@ definitions:
       invite_code:
         type: string
     type: object
-  api.RspTasks:
+  api.RspSummary:
     properties:
+      remaining_codes:
+        type: integer
       tasks:
         items:
           $ref: '#/definitions/invite-code-service_api.Task'
         type: array
+      total_codes:
+        type: integer
     type: object
   api.RspUserStatus:
     properties:
@@ -135,11 +139,11 @@ paths:
       summary: gen invite code
       tags:
       - v1
-  /v1/invite/tasks:
+  /v1/invite/summary:
     get:
       consumes:
       - application/json
-      description: get tasks
+      description: get codes info and zealy task
       produces:
       - application/json
       responses:
@@ -150,9 +154,9 @@ paths:
             - $ref: '#/definitions/utils.Rsp'
             - properties:
                 data:
-                  $ref: '#/definitions/api.RspTasks'
+                  $ref: '#/definitions/api.RspSummary'
               type: object
-      summary: get tasks
+      summary: get codes info and zealy task
       tags:
       - v1
   /v1/invite/userStatus:

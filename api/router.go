@@ -22,7 +22,7 @@ func InitRouters(db *db.WrapDb, cfg *config.ConfigApi) http.Handler {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	handler := NewHandler(db, cfg)
-	router.GET("/api/v1/invite/tasks", handler.GetTasks)
+	router.GET("/api/v1/invite/summary", handler.GetSummary)
 	router.GET("/api/v1/invite/userStatus", handler.GetUserStatus)
 	router.GET("/api/v1/invite/waterInviteCode", handler.GetWaterInviteCode)
 
