@@ -23,6 +23,12 @@ func TestZealy(t *testing.T) {
 	}
 	t.Logf("%+v", reviews)
 
+	for _, item := range reviews.Items {
+		if item.Status == "success" {
+			t.Log("fff", item.ID)
+		}
+	}
+
 	user, err := utils.GetCommunityUser(apiKey, subdomain, ethAddress)
 	if err != nil {
 		t.Fatal(err)

@@ -129,10 +129,12 @@ func (h *Handler) getUserTasks(address string) ([]Task, error) {
 
 	tasks := make([]Task, 0, len(userTask.Items))
 	for _, item := range userTask.Items {
-		tasks = append(tasks, Task{
-			Id:          item.Quest.ID,
-			Description: item.Quest.Name,
-		})
+		if item.Status == "success" {
+			tasks = append(tasks, Task{
+				Id:          item.Quest.ID,
+				Description: item.Quest.Name,
+			})
+		}
 	}
 
 	return tasks, nil
