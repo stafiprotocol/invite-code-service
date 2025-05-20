@@ -53,8 +53,7 @@ func RefreshInviteCodeRotation(db *db.WrapDb) error {
 	}
 
 	var codes []InviteCode
-	err := db.
-		Where("user_address IS NULL AND discord_id IS NULL AND user_id IS NULL AND code_type = 2").
+	err := db.Where("bind_time = 0 AND code_type = 2").
 		Order("RAND()").Limit(waterRotationsCountLimit).
 		Find(&codes).Error
 	if err != nil {
@@ -68,4 +67,18 @@ func RefreshInviteCodeRotation(db *db.WrapDb) error {
 		})
 	}
 	return db.Create(&rotations).Error
+}
+
+type WaterRotationWithStatus struct {
+	InviteCode string
+	Used       bool
+}
+
+func GetWaterRotationsWithStatus(db *db.WrapDb) (result []WaterRotationWithStatus, err error) {
+	err = db.Model(WaterRotation{}).
+		Select("water_rotations.invite_code, IF(invite_codes.bind_time > 0, true, false) AS used").
+		Joins("LEFT JOIN invite_codes ON water_rotations.invite_code = invite_codes.invite_code").
+		Scan(&result).Error
+
+	return
 }

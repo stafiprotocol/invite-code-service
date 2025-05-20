@@ -211,6 +211,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api.InviteCode": {
+            "type": "object",
+            "properties": {
+                "invite_code": {
+                    "type": "string"
+                },
+                "used": {
+                    "type": "boolean"
+                }
+            }
+        },
         "api.ReqBind": {
             "type": "object",
             "properties": {
@@ -290,7 +301,7 @@ const docTemplate = `{
                 "invite_codes": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/api.InviteCode"
                     }
                 }
             }

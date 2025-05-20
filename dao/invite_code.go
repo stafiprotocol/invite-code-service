@@ -72,7 +72,7 @@ func GetInviteCodeStats(db *db.WrapDb) (*InviteCodeStats, error) {
 		return nil, err
 	}
 
-	if err := db.Model(&InviteCode{}).Where("user_address IS NULL").Count(&unused).Error; err != nil {
+	if err := db.Model(&InviteCode{}).Where("bind_time = 0").Count(&unused).Error; err != nil {
 		return nil, err
 	}
 

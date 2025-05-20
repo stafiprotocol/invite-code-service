@@ -1,5 +1,12 @@
 basePath: /api
 definitions:
+  api.InviteCode:
+    properties:
+      invite_code:
+        type: string
+      used:
+        type: boolean
+    type: object
   api.ReqBind:
     properties:
       discord_id:
@@ -51,7 +58,7 @@ definitions:
     properties:
       invite_codes:
         items:
-          type: string
+          $ref: '#/definitions/api.InviteCode'
         type: array
     type: object
   invite-code-service_api.Task:
