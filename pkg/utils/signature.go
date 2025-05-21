@@ -20,6 +20,7 @@ import (
 //
 // Invite Code: abc123
 // Discord ID: 987654321
+// Discord Name: xxx
 // Timestamp: 123456
 //
 //
@@ -63,13 +64,14 @@ func IsValidSignTime(timestamp uint64) bool {
 	return true
 }
 
-func BuildBindMessage(inviteCode string, discordID string, timestamp uint64) string {
+func BuildBindMessage(inviteCode string, discordID, discordName string, timestamp uint64) string {
 	return fmt.Sprintf(`Please sign this message to verify your identity.
 This request will not trigger any blockchain transaction or cost any gas.
 
 Invite Code: %s
 Discord ID: %s
-Timestamp: %d`, inviteCode, discordID, timestamp)
+Discord Name: %s
+Timestamp: %d`, inviteCode, discordID, discordName, timestamp)
 }
 
 func BuildGenMessage(timestamp uint64) string {

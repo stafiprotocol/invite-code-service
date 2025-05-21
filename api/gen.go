@@ -123,6 +123,7 @@ func (h *Handler) HandlePostGenInviteCode(c *gin.Context) {
 
 	inviteCode.UserId = &userInfo.ID
 	inviteCode.DiscordId = &userInfo.DiscordID
+	inviteCode.DiscordName = &userInfo.DiscordHandle
 	inviteCode.UserAddress = &req.UserAddress
 	inviteCode.BindTime = uint64(time.Now().Unix())
 
@@ -134,8 +135,7 @@ func (h *Handler) HandlePostGenInviteCode(c *gin.Context) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"inviteCode":  inviteCode,
-		"userAddress": req.UserAddress,
+		"req": req,
 	}).Info("bind  success")
 
 	utils.Ok(c, RspGen{

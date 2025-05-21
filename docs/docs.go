@@ -242,6 +242,9 @@ const docTemplate = `{
                 "discord_id": {
                     "type": "string"
                 },
+                "discord_name": {
+                    "type": "string"
+                },
                 "invite_code": {
                     "type": "string"
                 },

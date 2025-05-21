@@ -15,6 +15,7 @@ import (
 type ReqBind struct {
 	UserAddress string `json:"user_address"`
 	DiscordId   string `json:"discord_id"`
+	DiscordName string `json:"discord_name"`
 	InviteCode  string `json:"invite_code"`
 	Signature   string `json:"signature"`
 	Timestamp   uint64 `json:"timestamp"`
@@ -37,7 +38,7 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 		logrus.Errorf("bind err %s", err)
 		return
 	}
-	if len(req.UserAddress) == 0 || len(req.DiscordId) == 0 || len(req.InviteCode) == 0 || len(req.Signature) == 0 {
+	if len(req.UserAddress) == 0 || len(req.DiscordId) == 0 || len(req.DiscordName) == 0 || len(req.InviteCode) == 0 || len(req.Signature) == 0 {
 		utils.Err(c, codeParamErr, "")
 		return
 	}
@@ -66,7 +67,7 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 		return
 	}
 
-	signMessage := utils.BuildBindMessage(req.InviteCode, req.DiscordId, req.Timestamp)
+	signMessage := utils.BuildBindMessage(req.InviteCode, req.DiscordId, req.DiscordName, req.Timestamp)
 	if !utils.VerifySigsEthPersonal(sigBts, signMessage, userAddress) {
 		utils.Err(c, codeUserSigVerifyErr, "verify sigs failed")
 		logrus.Errorf("VerifySigsEthPersonal failed, user: %s", req.UserAddress)
@@ -98,6 +99,8 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 	}
 
 	inviteCode.UserAddress = &req.UserAddress
+	inviteCode.DiscordId = &req.DiscordId
+	inviteCode.DiscordName = &req.DiscordName
 	inviteCode.BindTime = uint64(time.Now().Unix())
 
 	err = dao.UpOrInInviteCode(h.db, inviteCode)
@@ -108,8 +111,7 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"inviteCode":  inviteCode,
-		"userAddress": req.UserAddress,
+		"req": req,
 	}).Info("bind  success")
 
 	utils.Ok(c, nil)

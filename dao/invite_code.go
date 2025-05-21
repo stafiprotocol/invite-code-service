@@ -13,9 +13,11 @@ const (
 type InviteCode struct {
 	db.BaseModel
 
-	InviteCode  string  `gorm:"type:varchar(10);not null;default:'';column:invite_code;uniqueIndex"`
+	InviteCode string `gorm:"type:varchar(10);not null;default:'';column:invite_code;uniqueIndex"`
+
 	UserAddress *string `gorm:"type:varchar(80);column:user_address;uniqueIndex"`
 	DiscordId   *string `gorm:"type:varchar(80);column:discord_id;uniqueIndex"`
+	DiscordName *string `gorm:"type:varchar(80);column:discord_name;"`
 	UserId      *string `gorm:"type:varchar(80);column:user_id;uniqueIndex"`
 
 	CodeType uint8  `gorm:"type:tinyint(1);unsigned;not null;default:0;column:code_type"`
