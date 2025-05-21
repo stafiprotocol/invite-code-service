@@ -30,6 +30,10 @@ func NewTask(cfg *config.ConfigApi, dao *db.WrapDb) (*Task, error) {
 		return nil, fmt.Errorf("over max gen count: %d", maxGenCount)
 	}
 
+	if cfg.WaterInviteCodeCount < 50 {
+		return nil, fmt.Errorf("WaterInviteCodeCount must >= 50")
+	}
+
 	s := &Task{
 		cfg: cfg,
 		db:  dao,

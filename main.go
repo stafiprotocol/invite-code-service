@@ -4,9 +4,9 @@ import (
 	"invite-code-service/cmd"
 )
 
-// @title point API
+// @title invite code API
 // @version 1.0
-// @description  point api document.
+// @description  invite code api document.
 // @description  Error Codes:
 // @description  80001 Invalid parameters
 // @description  80002 Internal server error

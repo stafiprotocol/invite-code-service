@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	appName = "point-service"
+	appName = "invite-code-service"
 )
 
 const (

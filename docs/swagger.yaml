@@ -85,7 +85,7 @@ definitions:
 info:
   contact: {}
   description: |-
-    point api document.
+    invite code api document.
     Error Codes:
     80001 Invalid parameters
     80002 Internal server error
@@ -96,7 +96,7 @@ info:
     80007 Invite code does not exist
     80008 Invite code type mismatch
     80009 Invite codes not enough
-  title: point API
+  title: invite code API
   version: "1.0"
 paths:
   /v1/invite/bind:

@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const roundRefreshSeconds = 7 * 60 * 60 // 1 week
+const roundRefreshSeconds = 7 * 24 * 60 * 60 // 1 week
 const (
 	dropletCount    = 5
 	codesPerDroplet = 5
@@ -71,7 +71,7 @@ func GetLatestDropletCodesWithStatus(db *db.WrapDb) ([]*DropletCodeWithStatus, e
 	var usedCodes []string
 	err = db.Model(&InviteCode{}).
 		Where("invite_code IN ?", inviteCodes).
-		Where("user_address IS NOT NULL").
+		Where("bind_time > 0").
 		Pluck("invite_code", &usedCodes).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to query invite code usage: %w", err)
@@ -161,7 +161,7 @@ func GenerateDropletCodes(db *db.WrapDb) error {
 		totalNeeded := len(dropletsToCreate) * codesPerDroplet
 		var availableCodes []InviteCode
 		if err := tx.
-			Where("user_address IS NULL").
+			Where("code_type = 2 AND bind_time = 0").
 			Order("id ASC").
 			Limit(totalNeeded).
 			Find(&availableCodes).Error; err != nil {

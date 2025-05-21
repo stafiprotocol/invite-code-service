@@ -116,8 +116,14 @@ func (h *Handler) HandlePostGenInviteCode(c *gin.Context) {
 	}
 
 	if len(userInfo.DiscordID) == 0 {
-		utils.Err(c, codeInternalErr, "")
-		logrus.Errorf("user discord empty err, user: %s", req.UserAddress)
+		utils.Err(c, codeInternalErr, "user discord id empty")
+		logrus.Errorf("user discord id empty err, user: %s", req.UserAddress)
+		return
+	}
+
+	if len(userInfo.DiscordHandle) == 0 {
+		utils.Err(c, codeInternalErr, "user discord name empty")
+		logrus.Errorf("user discord name empty err, user: %s", req.UserAddress)
 		return
 	}
 
