@@ -49,6 +49,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/invite/droplets": {
+            "get": {
+                "description": "get droplets",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "summary": "get droplets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "droplet",
+                        "name": "droplet",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Rsp"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/api.RspDroplets"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/v1/invite/genInviteCode": {
             "post": {
                 "description": "The exact message format to sign is here:\nhttps://github.com/stafiprotocol/invite-code-service/blob/main/pkg/utils/signature.go",
@@ -173,52 +216,23 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/v1/invite/waterInviteCode": {
-            "get": {
-                "description": "get water invite code",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "v1"
-                ],
-                "summary": "get water invite code",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/utils.Rsp"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/api.RspWaterInviteCode"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
-        "api.InviteCode": {
+        "api.Droplet": {
             "type": "object",
             "properties": {
+                "available_count": {
+                    "type": "integer"
+                },
                 "invite_code": {
                     "type": "string"
                 },
-                "used": {
-                    "type": "boolean"
+                "round": {
+                    "type": "integer"
+                },
+                "total_count": {
+                    "type": "integer"
                 }
             }
         },
@@ -253,6 +267,17 @@ const docTemplate = `{
                 },
                 "user_address": {
                     "type": "string"
+                }
+            }
+        },
+        "api.RspDroplets": {
+            "type": "object",
+            "properties": {
+                "droplets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.Droplet"
+                    }
                 }
             }
         },
@@ -291,17 +316,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/invite-code-service_api.Task"
-                    }
-                }
-            }
-        },
-        "api.RspWaterInviteCode": {
-            "type": "object",
-            "properties": {
-                "invite_codes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.InviteCode"
                     }
                 }
             }

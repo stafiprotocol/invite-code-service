@@ -8,13 +8,18 @@ import (
 )
 
 type ConfigApi struct {
-	LogFileDir            string
-	ListenAddr            string
+	LogFileDir string
+	ListenAddr string
+
 	TaskInviteCodeCount   uint64
 	DirectInviteCodeCount uint64
 	WaterInviteCodeCount  uint64
-	ZealyApiKey           string
-	ZealySubdomain        string
+
+	// DropletCount    uint64
+	// CodesPerDroplet uint64
+
+	ZealyApiKey    string
+	ZealySubdomain string
 
 	Db Db
 }

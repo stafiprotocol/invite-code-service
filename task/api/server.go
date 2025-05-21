@@ -108,15 +108,15 @@ func (svr *Task) Start() error {
 		logrus.Infof("generate success")
 	}
 
-	err = dao.TryRotateInviteCodes(svr.db)
+	err = dao.GenerateDropletCodes(svr.db)
 	if err != nil {
 		return fmt.Errorf("TryRotateInviteCodes failed: %s", err.Error())
 	}
 
 	svr.cron = cron.New()
-	_, _ = svr.cron.AddFunc("*/2 * * * *", func() {
+	_, _ = svr.cron.AddFunc("*/5 * * * *", func() {
 		logrus.Debug("cron start")
-		err := dao.TryRotateInviteCodes(svr.db)
+		err := dao.GenerateDropletCodes(svr.db)
 		if err != nil {
 			logrus.Warnf("Rotation check failed: %v", err)
 		}
