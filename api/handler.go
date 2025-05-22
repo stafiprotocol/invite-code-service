@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/patrickmn/go-cache"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -67,10 +68,26 @@ func (h *Handler) getTasks() ([]Task, error) {
 	tasks := make([]Task, 0, len(quests))
 	for _, quest := range quests {
 		if quest.Published {
-			tasks = append(tasks, Task{
-				Id:          quest.ID,
-				Description: quest.Name,
-			})
+			for _, t := range quest.Tasks {
+
+				var url string
+				switch t.Type {
+				case "twitterFollow":
+					url = fmt.Sprintf("https://x.com/%s", t.Settings.Username)
+				case "discord":
+					url = t.Settings.InviteURL
+				default:
+					logrus.Warnf("unsported task type: %s", t.Type)
+					continue
+				}
+
+				tasks = append(tasks, Task{
+					Id:          quest.ID,
+					Type:        t.Type,
+					Description: quest.Name,
+					Url:         url,
+				})
+			}
 		}
 	}
 

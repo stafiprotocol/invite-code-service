@@ -10,21 +10,48 @@ import (
 )
 
 type QuestResponse []struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	Deleted      bool   `json:"deleted"`
-	CommunityID  string `json:"communityId"`
-	CategoryID   string `json:"categoryId"`
-	CreatedAt    string `json:"createdAt"`
-	UpdatedAt    string `json:"updatedAt"`
-	Archived     bool   `json:"archived"`
-	AutoValidate bool   `json:"autoValidate"`
-	ConditionOp  string `json:"conditionOperator"`
-	Published    bool   `json:"published"`
-	Recurrence   string `json:"recurrence"`
-	RetryAfter   int    `json:"retryAfter"`
-	ClaimLimit   int    `json:"claimLimit"`
-	ClaimCounter int    `json:"claimCounter"`
+	ID                string        `json:"id"`
+	Name              string        `json:"name"`
+	Description       interface{}   `json:"description"`
+	CommunityID       string        `json:"communityId"`
+	CategoryID        string        `json:"categoryId"`
+	Deleted           bool          `json:"deleted"`
+	CreatedAt         time.Time     `json:"createdAt"`
+	UpdatedAt         time.Time     `json:"updatedAt"`
+	Archived          bool          `json:"archived"`
+	AutoValidate      bool          `json:"autoValidate"`
+	Conditions        []interface{} `json:"conditions"`
+	ConditionOperator string        `json:"conditionOperator"`
+	Published         bool          `json:"published"`
+	Recurrence        string        `json:"recurrence"`
+	RetryAfter        int           `json:"retryAfter"`
+	Rewards           []struct {
+		Type   string `json:"type"`
+		Value  int    `json:"value"`
+		Method struct {
+			Type string `json:"type"`
+		} `json:"method"`
+	} `json:"rewards"`
+	Tasks             []TaskDetail `json:"tasks"`
+	ClaimCounter      int          `json:"claimCounter"`
+	CommunityImageURL interface{}  `json:"communityImageUrl"`
+	CommunityName     string       `json:"communityName"`
+	Subdomain         string       `json:"subdomain"`
+}
+
+type TaskDetail struct {
+	ID       string `json:"id"`
+	Type     string `json:"type"`
+	Metadata struct {
+		ID       string `json:"id"`
+		Name     string `json:"name"`
+		GuildID  string `json:"guildId"`
+		ImageURL string `json:"imageUrl"`
+	} `json:"metadata"`
+	Settings struct {
+		InviteURL string `json:"inviteUrl"`
+		Username  string `json:"username"`
+	} `json:"settings"`
 }
 
 func GetCommunityQuests(apiKey, subdomain string) (QuestResponse, error) {
@@ -53,7 +80,6 @@ func GetCommunityQuests(apiKey, subdomain string) (QuestResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	var quests QuestResponse
 	err = json.Unmarshal(body, &quests)
 	if err != nil {

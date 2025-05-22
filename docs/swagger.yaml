@@ -73,6 +73,10 @@ definitions:
         type: string
       id:
         type: string
+      type:
+        type: string
+      url:
+        type: string
     type: object
   utils.Rsp:
     properties:

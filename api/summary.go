@@ -16,7 +16,9 @@ type RspSummary struct {
 
 type Task struct {
 	Id          string `json:"id"`
+	Type        string `json:"type"`
 	Description string `json:"description"`
+	Url         string `json:"url"`
 }
 
 // @Summary get codes info and zealy task

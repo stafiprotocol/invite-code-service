@@ -331,6 +331,12 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },
