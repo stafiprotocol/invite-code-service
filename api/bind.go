@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"invite-code-service/dao"
 	"invite-code-service/pkg/utils"
 	"strings"
@@ -105,6 +106,11 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 
 	err = dao.CheckBondAndUpdateInviteCode(h.db, inviteCode)
 	if err != nil {
+		if errors.Is(err, dao.ErrAlreadyBond) {
+			utils.Err(c, codeUserAlreadyBoundErr, "")
+			return
+		}
+
 		utils.Err(c, codeInternalErr, err.Error())
 		logrus.Errorf("UpOrInInviteCode err %s", err)
 		return

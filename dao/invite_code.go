@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"errors"
 	"invite-code-service/pkg/db"
 )
 
@@ -32,8 +33,17 @@ func CreateInviteCode(db *db.WrapDb, c *InviteCode) error {
 	return db.Save(c).Error
 }
 
+var ErrAlreadyBond = errors.New("already bond")
+
 func CheckBondAndUpdateInviteCode(db *db.WrapDb, c *InviteCode) error {
-	return db.Model(c).Where("bind_time = 0").Omit("CreatedAt", "InviteCode", "CodeType").Updates(c).Error
+	result := db.Model(c).Where("bind_time = 0").Select("*").Omit("CreatedAt", "InviteCode", "CodeType").Updates(c)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return ErrAlreadyBond
+	}
+	return nil
 }
 
 func GetInviteCode(db *db.WrapDb, code string) (info *InviteCode, err error) {
