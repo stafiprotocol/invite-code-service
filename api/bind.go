@@ -117,7 +117,8 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"req": req,
+		"req":        req,
+		"inviteCode": inviteCode,
 	}).Info("bind  success")
 
 	utils.Ok(c, nil)

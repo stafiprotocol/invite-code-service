@@ -147,7 +147,8 @@ func (h *Handler) HandlePostGenInviteCode(c *gin.Context) {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"req": req,
+		"req":        req,
+		"inviteCode": inviteCode,
 	}).Info("bind  success")
 
 	utils.Ok(c, RspGen{
