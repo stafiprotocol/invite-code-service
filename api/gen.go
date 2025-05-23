@@ -133,7 +133,7 @@ func (h *Handler) HandlePostGenInviteCode(c *gin.Context) {
 	inviteCode.UserAddress = &req.UserAddress
 	inviteCode.BindTime = uint64(time.Now().Unix())
 
-	err = dao.UpOrInInviteCode(h.db, inviteCode)
+	err = dao.CheckBondAndUpdateInviteCode(h.db, inviteCode)
 	if err != nil {
 		utils.Err(c, codeInternalErr, err.Error())
 		logrus.Errorf("UpOrInInviteCode err %s", err)

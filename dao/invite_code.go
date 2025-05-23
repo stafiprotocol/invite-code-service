@@ -28,8 +28,12 @@ func (f InviteCode) TableName() string {
 	return "invite_codes"
 }
 
-func UpOrInInviteCode(db *db.WrapDb, c *InviteCode) error {
+func CreateInviteCode(db *db.WrapDb, c *InviteCode) error {
 	return db.Save(c).Error
+}
+
+func CheckBondAndUpdateInviteCode(db *db.WrapDb, c *InviteCode) error {
+	return db.Model(c).Where("bind_time = 0").Omit("CreatedAt", "InviteCode", "CodeType").Updates(c).Error
 }
 
 func GetInviteCode(db *db.WrapDb, code string) (info *InviteCode, err error) {

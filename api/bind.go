@@ -103,7 +103,7 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 	inviteCode.DiscordName = &req.DiscordName
 	inviteCode.BindTime = uint64(time.Now().Unix())
 
-	err = dao.UpOrInInviteCode(h.db, inviteCode)
+	err = dao.CheckBondAndUpdateInviteCode(h.db, inviteCode)
 	if err != nil {
 		utils.Err(c, codeInternalErr, err.Error())
 		logrus.Errorf("UpOrInInviteCode err %s", err)

@@ -27,15 +27,6 @@ func (f DropletCode) TableName() string {
 	return "droplet_codes"
 }
 
-func UpOrInDropletCode(db *db.WrapDb, c *DropletCode) error {
-	return db.Save(c).Error
-}
-
-func GetDropletCodes(db *db.WrapDb) (rotations []*DropletCode, err error) {
-	err = db.Find(&rotations).Error
-	return
-}
-
 type DropletCodeWithStatus struct {
 	InviteCode   string
 	Round        uint8

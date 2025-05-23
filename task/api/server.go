@@ -155,7 +155,7 @@ func (svr *Task) genInviteCode(genCount int64, codeType uint8) error {
 			CodeType:   codeType,
 		}
 
-		err = dao.UpOrInInviteCode(svr.db, &newInviteCode)
+		err = dao.CreateInviteCode(svr.db, &newInviteCode)
 		if err != nil {
 			return err
 		}
