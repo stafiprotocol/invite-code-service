@@ -362,7 +362,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "invite code API",
-	Description:      "invite code api document.\nError Codes:\n80001 Invalid parameters\n80002 Internal server error\n80003 User already bound\n80004 Invite code already bound\n80005 Signature verification failed\n80006 Task verification failed\n80007 Invite code does not exist\n80008 Invite code type mismatch\n80009 Invite codes not enough",
+	Description:      "invite code api document.\nError Codes:\n80001 Invalid parameters\n80002 Internal server error\n80003 User already bound\n80004 Invite code already bound\n80005 Signature verification failed\n80006 Task verification failed\n80007 Invite code does not exist\n80008 Invite code type mismatch\n80009 Invite codes not enough\n80010 Discord already bound",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

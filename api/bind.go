@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"invite-code-service/dao"
 	"invite-code-service/pkg/utils"
@@ -61,6 +62,19 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 		return
 	}
 
+	_, err = dao.GetInviteCodeByDiscordId(h.db, req.DiscordId)
+	if err != nil {
+		if err != gorm.ErrRecordNotFound {
+			utils.Err(c, codeInternalErr, err.Error())
+			logrus.Errorf("GetInviteCodeByDiscordId err %s", err)
+			return
+		}
+		// pass
+	} else {
+		utils.Err(c, codeDiscordAlreadyBoundErr, "")
+		return
+	}
+
 	// check signature
 	if !utils.IsValidSignTime(req.Timestamp) {
 		utils.Err(c, codeUserSigVerifyErr, "invalid sign time")
@@ -116,9 +130,10 @@ func (h *Handler) HandlePostBind(c *gin.Context) {
 		return
 	}
 
+	inviteCodebts, _ := json.Marshal(inviteCode)
 	logrus.WithFields(logrus.Fields{
 		"req":        req,
-		"inviteCode": inviteCode,
+		"inviteCode": string(inviteCodebts),
 	}).Info("bind  success")
 
 	utils.Ok(c, nil)

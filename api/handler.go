@@ -21,6 +21,7 @@ const (
 	codeInviteCodeNotExistErr     = "80007"
 	codeInviteCodeTypeNotMatchErr = "80008"
 	codeInviteCodeNotEnoughErr    = "80009"
+	codeDiscordAlreadyBoundErr    = "80010"
 )
 
 const (

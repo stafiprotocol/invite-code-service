@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"invite-code-service/dao"
 	"invite-code-service/pkg/utils"
@@ -128,6 +129,19 @@ func (h *Handler) HandlePostGenInviteCode(c *gin.Context) {
 		return
 	}
 
+	_, err = dao.GetInviteCodeByDiscordId(h.db, userInfo.DiscordID)
+	if err != nil {
+		if err != gorm.ErrRecordNotFound {
+			utils.Err(c, codeInternalErr, err.Error())
+			logrus.Errorf("GetInviteCodeByDiscordId err %s", err)
+			return
+		}
+		// pass
+	} else {
+		utils.Err(c, codeDiscordAlreadyBoundErr, "")
+		return
+	}
+
 	inviteCode.UserId = &userInfo.ID
 	inviteCode.DiscordId = &userInfo.DiscordID
 	inviteCode.DiscordName = &userInfo.DiscordHandle
@@ -146,9 +160,10 @@ func (h *Handler) HandlePostGenInviteCode(c *gin.Context) {
 		return
 	}
 
+	inviteCodebts, _ := json.Marshal(inviteCode)
 	logrus.WithFields(logrus.Fields{
 		"req":        req,
-		"inviteCode": inviteCode,
+		"inviteCode": string(inviteCodebts),
 	}).Info("bind  success")
 
 	utils.Ok(c, RspGen{

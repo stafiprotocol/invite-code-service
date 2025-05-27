@@ -17,6 +17,7 @@ import (
 // @description  80007 Invite code does not exist
 // @description  80008 Invite code type mismatch
 // @description  80009 Invite codes not enough
+// @description  80010 Discord already bound
 // @BasePath /api
 func main() {
 	cmd.Execute()
