@@ -31,41 +31,33 @@ func (h *Handler) GetUserStatus(c *gin.Context) {
 	}
 	address = strings.ToLower(address)
 
+	inviteCode := ""
 	codeInfo, err := dao.GetInviteCodeByUserAddress(h.db, address)
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
 			utils.Err(c, codeInternalErr, err.Error())
-			logrus.Errorf("bind err %s", err)
+			logrus.Errorf("GetInviteCodeByUserAddress err %s", err)
 			return
 		}
+		// pass
+	} else {
+		inviteCode = codeInfo.InviteCode
+	}
 
-		userTasks, err := h.getUserTasks(address)
-		if err != nil {
-			if err != utils.ErrAddressNotFound {
-				utils.Err(c, codeInternalErr, err.Error())
-				logrus.Errorf("getUserTasks err %s", err)
-				return
-			} else {
-				userTasks = []Task{}
-			}
+	userTasks, err := h.getUserTasks(address)
+	if err != nil {
+		if err != utils.ErrAddressNotFound {
+			utils.Err(c, codeInternalErr, err.Error())
+			logrus.Errorf("getUserTasks err %s", err)
+			return
+		} else {
+			userTasks = []Task{}
 		}
-
-		utils.Ok(c, RspUserStatus{
-			InviteCode: "",
-			Tasks:      userTasks,
-		})
-		return
 	}
 
 	rsp := RspUserStatus{
-		InviteCode: codeInfo.InviteCode,
-		Tasks:      []Task{},
-	}
-	if codeInfo.CodeType == dao.TaskInviteCode {
-		userTasks, err := h.getUserTasks(address)
-		if err == nil {
-			rsp.Tasks = userTasks
-		}
+		InviteCode: inviteCode,
+		Tasks:      userTasks,
 	}
 
 	utils.Ok(c, rsp)

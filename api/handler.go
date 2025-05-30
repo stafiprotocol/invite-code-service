@@ -65,7 +65,12 @@ func (h *Handler) getTasks() ([]Task, error) {
 	if !ok {
 		return nil, fmt.Errorf("cast cachedTask failed, %+v", cachedTask)
 	}
+	tasks := questToTask(quests)
 
+	return tasks, nil
+}
+
+func questToTask(quests utils.QuestResponse) []Task {
 	tasks := make([]Task, 0, len(quests))
 	for _, quest := range quests {
 		if quest.Published {
@@ -78,7 +83,7 @@ func (h *Handler) getTasks() ([]Task, error) {
 				case "discord":
 					url = t.Settings.InviteURL
 				default:
-					logrus.Warnf("unsported task type: %s", t.Type)
+					logrus.Warnf("unsupported task type: %s", t.Type)
 					continue
 				}
 
@@ -91,8 +96,7 @@ func (h *Handler) getTasks() ([]Task, error) {
 			}
 		}
 	}
-
-	return tasks, nil
+	return tasks
 }
 
 func (h *Handler) getUserInfo(address string) (*utils.UserResponse, error) {
