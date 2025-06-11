@@ -1,6 +1,7 @@
 package utils_test
 
 import (
+	"encoding/json"
 	"invite-code-service/pkg/utils"
 	"os"
 	"testing"
@@ -15,17 +16,19 @@ func TestZealy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("%+v", quests)
+	questsBts, _ := json.Marshal(quests)
+	t.Logf("quests: %s", string(questsBts))
 
 	reviews, err := utils.GetCommunityReviews(apiKey, subdomain, userId)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("%+v", reviews)
+	reviewsBts, _ := json.Marshal(reviews)
+	t.Logf("reviews: %s", string(reviewsBts))
 
 	for _, item := range reviews.Items {
 		if item.Status == "success" {
-			t.Log("fff", item.ID)
+			t.Log("success item", item.ID)
 		}
 	}
 
@@ -33,5 +36,6 @@ func TestZealy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("%+v", user)
+	userBts, _ := json.Marshal(user)
+	t.Logf("user: %s", string(userBts))
 }

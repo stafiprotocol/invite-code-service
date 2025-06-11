@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -18,20 +17,15 @@ import (
 const maxGenCount = 100000
 
 type Task struct {
-	cfg  *config.ConfigApi
-	cron *cron.Cron
+	cfg *config.ConfigApi
 
 	httpServer *http.Server
 	db         *db.WrapDb
 }
 
 func NewTask(cfg *config.ConfigApi, dao *db.WrapDb) (*Task, error) {
-	if cfg.TaskInviteCodeCount > maxGenCount || cfg.DirectInviteCodeCount > maxGenCount || cfg.WaterInviteCodeCount > maxGenCount {
+	if cfg.TaskInviteCodeCount > maxGenCount || cfg.DirectInviteCodeCount > maxGenCount {
 		return nil, fmt.Errorf("over max gen count: %d", maxGenCount)
-	}
-
-	if cfg.WaterInviteCodeCount < 50 {
-		return nil, fmt.Errorf("WaterInviteCodeCount must >= 50")
 	}
 
 	s := &Task{
@@ -101,8 +95,24 @@ func (svr *Task) Start() error {
 		logrus.Infof("generate success")
 	}
 
-	if waterInviteCodeCount < int64(svr.cfg.WaterInviteCodeCount) {
-		genCount := int64(svr.cfg.WaterInviteCodeCount) - waterInviteCodeCount
+	if svr.cfg.DropletRound > 0 {
+		var maxRound uint8
+		err = svr.db.Model(&dao.DropletCode{}).
+			Select("MAX(round)").
+			Scan(&maxRound).Error
+		if err != nil {
+			return fmt.Errorf("failed to get max round: %w", err)
+		}
+
+		if svr.cfg.DropletRound > maxRound+1 {
+			return fmt.Errorf("exist max round: %d", maxRound)
+		}
+	}
+
+	needWaterInviteCodeCount := uint64(svr.cfg.DropletRound+1) * utils.DropletCount * utils.CodesPerDroplet
+
+	if waterInviteCodeCount < int64(needWaterInviteCodeCount) {
+		genCount := int64(needWaterInviteCodeCount) - waterInviteCodeCount
 
 		logrus.Infof("need generate %d water invite code", genCount)
 		err := svr.genInviteCode(genCount, dao.WaterInviteCode)
@@ -112,21 +122,10 @@ func (svr *Task) Start() error {
 		logrus.Infof("generate success")
 	}
 
-	err = dao.GenerateDropletCodes(svr.db)
+	err = dao.GenerateDropletCodes(svr.db, svr.cfg.DropletRound)
 	if err != nil {
-		return fmt.Errorf("TryRotateInviteCodes failed: %s", err.Error())
+		return fmt.Errorf("GenerateDropletCodes failed: %s", err.Error())
 	}
-
-	svr.cron = cron.New()
-	_, _ = svr.cron.AddFunc("*/5 * * * *", func() {
-		logrus.Debug("cron start")
-		err := dao.GenerateDropletCodes(svr.db)
-		if err != nil {
-			logrus.Warnf("Rotation check failed: %v", err)
-		}
-		logrus.Debug("cron stop")
-	})
-	svr.cron.Start()
 
 	utils.SafeGoWithRestart(svr.ApiServer)
 	return nil
@@ -170,6 +169,4 @@ func (svr *Task) Stop() {
 			logrus.Errorf("Problem shutdown Gin server :%s", err.Error())
 		}
 	}
-
-	svr.cron.Stop()
 }

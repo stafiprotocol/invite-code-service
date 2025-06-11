@@ -5,6 +5,11 @@ import (
 	"math/big"
 )
 
+const (
+	DropletCount    = 5
+	CodesPerDroplet = 5
+)
+
 const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const codeLength = 8
 

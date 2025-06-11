@@ -3,16 +3,9 @@ package dao
 import (
 	"fmt"
 	"invite-code-service/pkg/db"
-	"time"
+	"invite-code-service/pkg/utils"
 
 	"gorm.io/gorm"
-)
-
-const roundRefreshSeconds = 7 * 24 * 60 * 60 // 1 week
-const (
-	dropletCount    = 5
-	codesPerDroplet = 5
-	totalPerRound   = dropletCount * codesPerDroplet
 )
 
 type DropletCode struct {
@@ -87,86 +80,38 @@ func GetLatestDropletCodesWithStatus(db *db.WrapDb) ([]*DropletCodeWithStatus, e
 	return result, nil
 }
 
-func GenerateDropletCodes(db *db.WrapDb) error {
-
-	now := time.Now()
+func GenerateDropletCodes(db *db.WrapDb, round uint8) error {
+	var dropletCodes []DropletCode
+	err := db.Where("round = ?", round).
+		Find(&dropletCodes).Error
+	if err != nil {
+		return fmt.Errorf("failed to get droplet codes: %w", err)
+	}
+	if len(dropletCodes) > 0 {
+		return nil
+	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
-		var existingDropletCodes []DropletCode
-		if err := tx.Order("round ASC, droplet_index ASC").Find(&existingDropletCodes).Error; err != nil {
-			return fmt.Errorf("failed to query existing droplets: %w", err)
-		}
-
-		// Build map[round][group]
-		dropletCodeMap := make(map[uint8]map[uint8][]DropletCode)
-		for _, d := range existingDropletCodes {
-			if dropletCodeMap[d.Round] == nil {
-				dropletCodeMap[d.Round] = make(map[uint8][]DropletCode)
-			}
-			dropletCodeMap[d.Round][d.DropletIndex] = append(dropletCodeMap[d.Round][d.DropletIndex], d)
-		}
-
-		var round uint8
-		var dropletsToCreate []uint8
-
-		if len(dropletCodeMap[0]) < dropletCount {
-			// First time: round 0, initialize full groups
-			round = 0
-			for i := 0; i < dropletCount; i++ {
-				if _, exists := dropletCodeMap[0][uint8(i)]; !exists {
-					dropletsToCreate = append(dropletsToCreate, uint8(i))
-				}
-			}
-		} else {
-			// round = 1, must check one week delay
-			round = 1
-
-			for i := 0; i < dropletCount; i++ {
-				idx := uint8(i)
-
-				codesOfDropletRound0 := dropletCodeMap[0][idx]
-				codesOfDropletRound1 := dropletCodeMap[1][idx]
-
-				// Must exist in round 0
-				if len(codesOfDropletRound0) != codesPerDroplet {
-					continue
-				}
-
-				// Already created in round 1
-				if len(codesOfDropletRound1) == codesPerDroplet {
-					continue
-				}
-
-				// Check if all round 0 droplets older than 1 week
-				if now.Unix() > int64(codesOfDropletRound0[0].CreatedAt+roundRefreshSeconds) {
-					dropletsToCreate = append(dropletsToCreate, idx)
-				}
-			}
-		}
-
-		if len(dropletsToCreate) == 0 {
-			return nil
-		}
 
 		// Fetch enough InviteCodes
-		totalNeeded := len(dropletsToCreate) * codesPerDroplet
+		totalNeeded := utils.DropletCount * utils.CodesPerDroplet
 		var availableCodes []InviteCode
 		if err := tx.
 			Where("code_type = 2 AND bind_time = 0").
 			Order("id ASC").
 			Limit(totalNeeded).
 			Find(&availableCodes).Error; err != nil {
-			return fmt.Errorf("failed to fetch invite codes: %w", err)
+			return fmt.Errorf("failed to fetch droplet invite codes: %w", err)
 		}
 
 		if len(availableCodes) < totalNeeded {
-			return fmt.Errorf("not enough available invite codes")
+			return fmt.Errorf("not enough available droplet invite codes")
 		}
 
 		// Assign codes and create droplets
 		cursor := 0
-		for _, dropletIdx := range dropletsToCreate {
-			for i := 0; i < codesPerDroplet; i++ {
+		for dropletIdx := uint8(0); dropletIdx < utils.DropletCount; dropletIdx++ {
+			for i := 0; i < utils.CodesPerDroplet; i++ {
 				code := availableCodes[cursor]
 				cursor++
 

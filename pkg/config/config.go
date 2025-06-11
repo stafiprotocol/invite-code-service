@@ -13,10 +13,8 @@ type ConfigApi struct {
 
 	TaskInviteCodeCount   uint64
 	DirectInviteCodeCount uint64
-	WaterInviteCodeCount  uint64
 
-	// DropletCount    uint64
-	// CodesPerDroplet uint64
+	DropletRound uint8
 
 	ZealyApiKey    string
 	ZealySubdomain string

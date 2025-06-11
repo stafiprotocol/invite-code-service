@@ -3,7 +3,7 @@ ListenAddr = ":8088"
 
 TaskInviteCodeCount = 20
 DirectInviteCodeCount = 20
-WaterInviteCodeCount = 20
+DropletRound = 0
 
 ZealyApiKey = ""
 ZealySubdomain = ""
