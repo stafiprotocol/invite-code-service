@@ -36,10 +36,10 @@ func (h *Handler) GetSummary(c *gin.Context) {
 		return
 	}
 
-	stats, err := dao.GetInviteCodeStats(h.db)
+	stats, err := dao.GetTaskInviteCodeStats(h.db)
 	if err != nil {
 		utils.Err(c, codeInternalErr, err.Error())
-		logrus.Errorf("GetInviteCodeStats err %s", err)
+		logrus.Errorf("GetTaskInviteCodeStats err %s", err)
 		return
 	}
 

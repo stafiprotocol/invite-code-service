@@ -80,15 +80,15 @@ type InviteCodeStats struct {
 	RemainCodes int64 `json:"remainCodes"`
 }
 
-func GetInviteCodeStats(db *db.WrapDb) (*InviteCodeStats, error) {
+func GetTaskInviteCodeStats(db *db.WrapDb) (*InviteCodeStats, error) {
 	var total int64
 	var unused int64
 
-	if err := db.Model(&InviteCode{}).Count(&total).Error; err != nil {
+	if err := db.Model(&InviteCode{}).Where("code_type = 0").Count(&total).Error; err != nil {
 		return nil, err
 	}
 
-	if err := db.Model(&InviteCode{}).Where("bind_time = 0").Count(&unused).Error; err != nil {
+	if err := db.Model(&InviteCode{}).Where("code_type = 0 AND bind_time = 0").Count(&unused).Error; err != nil {
 		return nil, err
 	}
 
