@@ -9,9 +9,11 @@ import (
 )
 
 type RspSummary struct {
-	TotalCodes     uint64 `json:"total_codes"`
-	RemainingCodes uint64 `json:"remaining_codes"`
-	Tasks          []Task `json:"tasks"`
+	TotalCodes         uint64 `json:"total_codes"`
+	RemainingCodes     uint64 `json:"remaining_codes"`
+	TotalTaskCodes     uint64 `json:"total_task_codes"`
+	RemainingTaskCodes uint64 `json:"remaining_task_codes"`
+	Tasks              []Task `json:"tasks"`
 }
 
 type Task struct {
@@ -39,14 +41,22 @@ func (h *Handler) GetSummary(c *gin.Context) {
 	stats, err := dao.GetAllInviteCodeStats(h.db)
 	if err != nil {
 		utils.Err(c, codeInternalErr, err.Error())
+		logrus.Errorf("GetAllInviteCodeStats err %s", err)
+		return
+	}
+	taskStats, err := dao.GetTaskInviteCodeStats(h.db)
+	if err != nil {
+		utils.Err(c, codeInternalErr, err.Error())
 		logrus.Errorf("GetTaskInviteCodeStats err %s", err)
 		return
 	}
 
 	utils.Ok(c, RspSummary{
-		TotalCodes:     uint64(stats.TotalCodes),
-		RemainingCodes: uint64(stats.RemainCodes),
-		Tasks:          tasks,
+		TotalCodes:         uint64(stats.TotalCodes),
+		RemainingCodes:     uint64(stats.RemainCodes),
+		TotalTaskCodes:     uint64(taskStats.TotalCodes),
+		RemainingTaskCodes: uint64(taskStats.RemainCodes),
+		Tasks:              tasks,
 	})
 
 }
