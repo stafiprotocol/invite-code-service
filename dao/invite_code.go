@@ -97,3 +97,21 @@ func GetTaskInviteCodeStats(db *db.WrapDb) (*InviteCodeStats, error) {
 		RemainCodes: unused,
 	}, nil
 }
+
+func GetAllInviteCodeStats(db *db.WrapDb) (*InviteCodeStats, error) {
+	var total int64
+	var unused int64
+
+	if err := db.Model(&InviteCode{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	if err := db.Model(&InviteCode{}).Where("bind_time = 0").Count(&unused).Error; err != nil {
+		return nil, err
+	}
+
+	return &InviteCodeStats{
+		TotalCodes:  total,
+		RemainCodes: unused,
+	}, nil
+}
