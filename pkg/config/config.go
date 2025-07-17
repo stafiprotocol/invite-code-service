@@ -22,6 +22,11 @@ type ConfigApi struct {
 	Db Db
 }
 
+type ConfigBindCode struct {
+	FilePath string
+	Db       Db
+}
+
 type Db struct {
 	Host string
 	Port string
