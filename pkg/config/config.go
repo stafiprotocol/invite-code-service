@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/BurntSushi/toml"
 )
@@ -22,6 +21,17 @@ type ConfigApi struct {
 	Db Db
 }
 
+type ConfigDiscordBot struct {
+	LogFileDir string
+
+	DiscordBotToken  string `json:"-"`
+	DiscordChannelId string
+	DiscordGuidId    string
+	DiscordRoleId    string
+
+	Db Db
+}
+
 type ConfigBindCode struct {
 	FilePath string
 	Db       Db
@@ -37,21 +47,13 @@ type Db struct {
 
 func LoadConfig[config any](path string) (*config, error) {
 	cfg := new(config)
-	if err := loadConfig(path, cfg); err != nil {
+
+	if _, err := toml.DecodeFile(path, cfg); err != nil {
 		return nil, err
 	}
 
-	return cfg, nil
-}
-
-func loadConfig(path string, config any) error {
-	_, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	if _, err := toml.DecodeFile(path, config); err != nil {
-		return err
-	}
 	fmt.Println("load config success")
-	return nil
+
+	return cfg, nil
+
 }

@@ -32,6 +32,7 @@ func NewRootCmd() *cobra.Command {
 
 	rootCmd.AddCommand(
 		startApiCmd(),
+		startDiscordBotCmd(),
 		bindCmd(),
 	)
 
