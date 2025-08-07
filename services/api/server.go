@@ -16,19 +16,19 @@ import (
 
 const maxGenCount = 100000
 
-type Task struct {
+type Service struct {
 	cfg *config.ConfigApi
 
 	httpServer *http.Server
 	db         *db.WrapDb
 }
 
-func NewTask(cfg *config.ConfigApi, dao *db.WrapDb) (*Task, error) {
+func NewService(cfg *config.ConfigApi, dao *db.WrapDb) (*Service, error) {
 	if cfg.TaskInviteCodeCount > maxGenCount || cfg.DirectInviteCodeCount > maxGenCount {
 		return nil, fmt.Errorf("over max gen count: %d", maxGenCount)
 	}
 
-	s := &Task{
+	s := &Service{
 		cfg: cfg,
 		db:  dao,
 	}
@@ -45,11 +45,11 @@ func NewTask(cfg *config.ConfigApi, dao *db.WrapDb) (*Task, error) {
 	return s, nil
 }
 
-func (svr *Task) InitHandler() http.Handler {
+func (svr *Service) InitHandler() http.Handler {
 	return api.InitRouters(svr.db, svr.cfg)
 }
 
-func (svr *Task) ApiServer() {
+func (svr *Service) ApiServer() {
 	logrus.Infof("Gin server start on %s", svr.cfg.ListenAddr)
 	err := svr.httpServer.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
@@ -60,7 +60,7 @@ func (svr *Task) ApiServer() {
 	logrus.Infof("Gin server done on %s", svr.cfg.ListenAddr)
 }
 
-func (svr *Task) Start() error {
+func (svr *Service) Start() error {
 	taskInviteCodeCount, err := dao.GetInviteCodeCount(svr.db, dao.TaskInviteCode)
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (svr *Task) Start() error {
 	return nil
 }
 
-func (svr *Task) genInviteCode(genCount int64, codeType uint8) error {
+func (svr *Service) genInviteCode(genCount int64, codeType uint8) error {
 	for i := int64(0); i < genCount; i++ {
 		inviteCode, err := utils.GenerateInviteCode()
 		if err != nil {
@@ -162,7 +162,7 @@ func (svr *Task) genInviteCode(genCount int64, codeType uint8) error {
 	return nil
 }
 
-func (svr *Task) Stop() {
+func (svr *Service) Stop() {
 	if svr.httpServer != nil {
 		err := svr.httpServer.Close()
 		if err != nil {

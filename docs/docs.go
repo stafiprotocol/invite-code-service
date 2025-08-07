@@ -298,13 +298,19 @@ const docTemplate = `{
                 "remaining_codes": {
                     "type": "integer"
                 },
+                "remaining_task_codes": {
+                    "type": "integer"
+                },
                 "tasks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/invite-code-service_api.Task"
+                        "$ref": "#/definitions/api.Task"
                     }
                 },
                 "total_codes": {
+                    "type": "integer"
+                },
+                "total_task_codes": {
                     "type": "integer"
                 }
             }
@@ -318,12 +324,12 @@ const docTemplate = `{
                 "tasks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/invite-code-service_api.Task"
+                        "$ref": "#/definitions/api.Task"
                     }
                 }
             }
         },
-        "invite-code-service_api.Task": {
+        "api.Task": {
             "type": "object",
             "properties": {
                 "description": {

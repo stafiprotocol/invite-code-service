@@ -33,6 +33,9 @@ func NewDB(cfg *Config) (wrapDb *WrapDb, err error) {
 	if cfg.Mode == "debug" {
 		logLevel = logger.Info
 	}
+	if cfg.Mode == "silent" {
+		logLevel = logger.Silent
+	}
 
 	db, err := gorm.Open(
 		mysql.New(

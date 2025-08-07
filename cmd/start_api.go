@@ -8,7 +8,7 @@ import (
 	"invite-code-service/pkg/db"
 	"invite-code-service/pkg/log"
 	"invite-code-service/pkg/utils"
-	task "invite-code-service/task/api"
+	"invite-code-service/services/api"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -88,7 +88,7 @@ func startApiCmd() *cobra.Command {
 
 			ctx := utils.ShutdownListener()
 
-			t, err := task.NewTask(cfg, db)
+			t, err := api.NewService(cfg, db)
 			if err != nil {
 				return err
 			}
@@ -97,8 +97,10 @@ func startApiCmd() *cobra.Command {
 				return err
 			}
 
+			logrus.Info("service start success")
+
 			defer func() {
-				logrus.Infof("shutting down task ...")
+				logrus.Infof("shutting down service ...")
 				t.Stop()
 			}()
 

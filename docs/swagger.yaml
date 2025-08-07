@@ -51,11 +51,15 @@ definitions:
     properties:
       remaining_codes:
         type: integer
+      remaining_task_codes:
+        type: integer
       tasks:
         items:
-          $ref: '#/definitions/invite-code-service_api.Task'
+          $ref: '#/definitions/api.Task'
         type: array
       total_codes:
+        type: integer
+      total_task_codes:
         type: integer
     type: object
   api.RspUserStatus:
@@ -64,10 +68,10 @@ definitions:
         type: string
       tasks:
         items:
-          $ref: '#/definitions/invite-code-service_api.Task'
+          $ref: '#/definitions/api.Task'
         type: array
     type: object
-  invite-code-service_api.Task:
+  api.Task:
     properties:
       description:
         type: string

@@ -8,7 +8,7 @@ import (
 	"invite-code-service/pkg/db"
 	"invite-code-service/pkg/log"
 	"invite-code-service/pkg/utils"
-	task "invite-code-service/task/bot"
+	"invite-code-service/services/bot"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -88,7 +88,7 @@ func startDiscordBotCmd() *cobra.Command {
 
 			ctx := utils.ShutdownListener()
 
-			t, err := task.NewTask(cfg, db)
+			t, err := bot.NewService(cfg, db)
 			if err != nil {
 				return err
 			}
@@ -96,9 +96,10 @@ func startDiscordBotCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			logrus.Info("service start success")
 
 			defer func() {
-				logrus.Infof("shutting down task ...")
+				logrus.Infof("shutting down service ...")
 				t.Stop()
 			}()
 

@@ -73,7 +73,7 @@ func bindCmd() *cobra.Command {
 				User:   cfg.Db.User,
 				Pass:   cfg.Db.Pwd,
 				DBName: cfg.Db.Name,
-				Mode:   "info"})
+				Mode:   "silent"})
 			if err != nil {
 				logrus.Errorf("db err: %s", err)
 				return err
@@ -86,12 +86,21 @@ func bindCmd() *cobra.Command {
 			logrus.Infof("db connect success")
 
 			for _, record := range records {
-				if len(record) != 2 {
-					return fmt.Errorf("format not match: recode: %s", record)
-				}
-				address := record[0]
-				code := record[1]
+				var address, discordId, code string
+				switch {
+				case len(record) == 2:
+					address = record[0]
+					code = record[1]
 
+				case len(record) == 3:
+					address = record[0]
+					discordId = record[1]
+					code = record[2]
+				default:
+					return fmt.Errorf("unknown record: %v", record)
+				}
+
+				// check code
 				inviteCode, err := dao.GetInviteCode(db, code)
 				if err != nil {
 					if err != gorm.ErrRecordNotFound {
@@ -108,6 +117,7 @@ func bindCmd() *cobra.Command {
 					return fmt.Errorf("code: %s type: %d not match", inviteCode.InviteCode, inviteCode.CodeType)
 				}
 
+				// check address
 				inviteCodeByUser, err := dao.GetInviteCodeByUserAddress(db, address)
 				if err != nil {
 					if err != gorm.ErrRecordNotFound {
@@ -119,8 +129,26 @@ func bindCmd() *cobra.Command {
 					continue
 				}
 
+				// check discord id
+				if len(discordId) > 0 {
+					inviteCodeByDiscordId, err := dao.GetInviteCodeByDiscordId(db, discordId)
+					if err != nil {
+						if err != gorm.ErrRecordNotFound {
+							return err
+						}
+						// pass
+					} else {
+						fmt.Printf("discord id %s already bind code: %s, will skip\n", discordId, inviteCodeByDiscordId.InviteCode)
+						continue
+					}
+				}
+
 				inviteCode.UserAddress = &address
 				inviteCode.BindTime = uint64(time.Now().Unix())
+				if len(discordId) > 0 {
+					inviteCode.DiscordId = &discordId
+				}
+
 				err = dao.CheckBondAndUpdateInviteCode(db, inviteCode)
 				if err != nil {
 					return err

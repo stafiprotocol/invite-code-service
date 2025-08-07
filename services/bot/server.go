@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Task struct {
+type Service struct {
 	cfg *config.ConfigDiscordBot
 
 	db *db.WrapDb
@@ -20,16 +20,16 @@ type Task struct {
 	discordClient *discordgo.Session
 }
 
-func NewTask(cfg *config.ConfigDiscordBot, dao *db.WrapDb) (*Task, error) {
+func NewService(cfg *config.ConfigDiscordBot, dao *db.WrapDb) (*Service, error) {
 	dg, err := discordgo.New("Bot " + cfg.DiscordBotToken)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Task{cfg: cfg, db: dao, discordClient: dg}, nil
+	return &Service{cfg: cfg, db: dao, discordClient: dg}, nil
 }
 
-func (svr *Task) Start() error {
+func (svr *Service) Start() error {
 	svr.discordClient.AddHandler(svr.claimRoleHandler)
 
 	svr.discordClient.Identify.Intents = discordgo.IntentsGuildMessages
@@ -37,11 +37,11 @@ func (svr *Task) Start() error {
 	return svr.discordClient.Open()
 }
 
-func (svr *Task) Stop() {
+func (svr *Service) Stop() {
 	svr.discordClient.Close()
 }
 
-func (svr *Task) claimRoleHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+func (svr *Service) claimRoleHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Ignore all messages created by the bot itself
 	if m.Author.ID == s.State.User.ID {
 		return
@@ -51,7 +51,7 @@ func (svr *Task) claimRoleHandler(s *discordgo.Session, m *discordgo.MessageCrea
 	}
 
 	content := m.Content
-	logrus.Infof("msg received, content: %s", content)
+	logrus.Infof("msg received, content: %s, user: %s", content, m.Author.ID)
 
 	re := regexp.MustCompile(`\s+`)
 	subs := re.Split(content, -1)
@@ -90,4 +90,5 @@ func (svr *Task) claimRoleHandler(s *discordgo.Session, m *discordgo.MessageCrea
 		logrus.Errorf("discordBot send msg error: %s", err.Error())
 		return
 	}
+	logrus.Info(reMsg)
 }
